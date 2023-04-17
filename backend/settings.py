@@ -35,7 +35,7 @@ SECRET_KEY = env('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 # 에러(e.g. 404 Not Found)가 발생했을 때 True로 해놓으면 Debugging 관련 내용이 뜬다. 따라서 배포 시엔 보안 이슈로 False로 바꿔놓아야 한다.
-DEBUG = True
+DEBUG = env('DEBUG')
 
 # 서버에 접근 가능한 호스트 리스트이다. 현재 '*'로 어떤 호스트도 접근이 가능하다.
 ALLOWED_HOSTS = ['*']
@@ -52,7 +52,10 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'account.apps.AccountConfig',
     'diary.apps.DiaryConfig',
-    'mypage.apps.MypageConfig'
+    'mypage.apps.MypageConfig',
+    'diaryImg.apps.DiaryimgConfig',
+    'rest_framework',
+    'storages'
 ]
 
 MIDDLEWARE = [
@@ -148,3 +151,18 @@ STATIC_URL = 'static/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 AUTH_USER_MODEL = 'account.User'
+
+
+# AWS IAM
+AWS_ACCESS_KEY_ID = env('AWS_ACCESS_KEY_ID')
+AWS_SECRET_ACCESS_KEY = env('AWS_SECRET_ACCESS_KEY')
+AWS_REGION = env('AWS_REGION')
+
+# AWS S3
+AWS_STORAGE_BUCKET_NAME = env('AWS_STORAGE_BUCKET_NAME')
+AWS_S3_CUSTOM_DOMAIN = '%s.s3.%s.amazonaws.com' % (AWS_STORAGE_BUCKET_NAME,AWS_REGION)
+AWS_S3_OBJECT_PARAMETERS = {
+    'CacheControl': 'max-age=86400',
+}
+DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'path/to/store/my/files/')
