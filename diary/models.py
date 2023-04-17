@@ -22,7 +22,9 @@ class Diary(models.Model):
     emo_id = models.ForeignKey(Emotion, on_delete=models.PROTECT)
     title = models.CharField(max_length=120),
     content = models.CharField(max_length=255)
-    image_url = models.URLField()
+    diary_img_id = models.ForeignKey('diaryImg.DiaryImg', on_delete=models.CASCADE)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
     
     def __str__(self):
         return self.title
