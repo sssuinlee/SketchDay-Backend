@@ -15,12 +15,16 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
+from . import views
 
 # from diary import views
 
 urlpatterns = [
+    path('', views.index, name='index'),
     path('admin/', admin.site.urls),
-    path('diary/', include('diary.urls'))
+    path('diary/', include('diary.urls')),
+    path('accounts/', include('django.contrib.auth.urls')),
+    path('signup/', views.SignUpView.as_view(), name='signup')
 ]
 
 # 404 Not Found error 발생 시 Django가 자동으로 아래의 view invoke
