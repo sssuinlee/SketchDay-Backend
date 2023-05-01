@@ -20,25 +20,16 @@ env = environ.Env(
 )
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
-BASE_DIR = Path(__file__).resolve().parent.parent
+BASE_DIR = Path(__file__).resolve().parent.parent.parent.parent
 
 # reading .env file
 environ.Env.read_env(
     env_file=os.path.join(BASE_DIR, '.env')
 )
 
+
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.1/howto/deployment/checklist/
-
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = env('SECRET_KEY')
-
-# SECURITY WARNING: don't run with debug turned on in production!
-# 에러(e.g. 404 Not Found)가 발생했을 때 True로 해놓으면 Debugging 관련 내용이 뜬다. 따라서 배포 시엔 보안 이슈로 False로 바꿔놓아야 한다.
-DEBUG = env('DEBUG')
-
-# 서버에 접근 가능한 호스트 리스트이다. 현재 '*'로 어떤 호스트도 접근이 가능하다.
-ALLOWED_HOSTS = ['*']
 
 
 # Application definition
@@ -87,26 +78,6 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'backend.wsgi.application'
-
-
-# Database
-# https://docs.djangoproject.com/en/4.1/ref/settings/#databases
-
-DATABASES = {
-    # 'default': {
-    #     'ENGINE': 'django.db.backends.sqlite3',
-    #     'NAME': BASE_DIR / 'db.sqlite3',
-    # }
-    'default' : {
-        'ENGINE' : 'django.db.backends.mysql',
-        'NAME' : 'sketch_day',
-        'USER' : 'root',
-        'PASSWORD' : env('PASSWORD'),
-        'HOST' : '127.0.0.1',
-        'PORT' : '3306'
-        
-    }
-}
 
 
 # Password validation
