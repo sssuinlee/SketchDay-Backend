@@ -2,22 +2,22 @@ from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin
 from django.contrib.auth.base_user import BaseUserManager
 from django.core.validators import validate_email
 from django.db import models
+from django.utils import timezone
 import uuid
 
 class UserManager(BaseUserManager):
-    def create_user(self, auth_email, name, birth, password=None, **extra_fields):
-        if not(name):
-            raise ValueError('Name required')
-        if not(auth_email):
-            raise ValueError('Email required')
+    def create_user(self, auth_email, password=None, **extra_fields):
+        # if not(name):
+        #     raise ValueError('Name required')
+        # if not(auth_email):
+        #     raise ValueError('Email required')
 
         auth_email = self.normalize_email(auth_email)
         validate_email(auth_email)
         
         user, created = self.model.objects.get_or_create(
             auth_email = auth_email,
-            name = name,
-            birth = birth
+            **extra_fields
         )
 
         if (created and password):
@@ -26,8 +26,8 @@ class UserManager(BaseUserManager):
 
         return user
 
-    def create_superuser(self, auth_email, name, birth, password):
-        user = self.create_user(auth_email=auth_email, name=name, birth=birth, password=password)
+    def create_superuser(self, auth_email, password=None, **extra_fields):
+        user = self.create_user(auth_email, password, **extra_fields)
         user.is_superuser = True
         user.is_staff = True
 
@@ -62,3 +62,4 @@ class User(AbstractBaseUser, PermissionsMixin):
     objects = UserManager()
 
     USERNAME_FIELD = 'auth_email'
+    REQUIRED_FIELDS = ['name', 'birth']
