@@ -26,6 +26,6 @@ jobs:
 
       - name: deploy with AWS codeDeploy
         run: aws deploy create-deployment
-          --application-name ${{ secrets.AWS_CODEDEPLOY_NAME }}
+          --application-name sketchday-app
           --deployment-config-name CodeDeployDefault.OneAtATime
-          --deployment-group-name ${{ secrets.AWS_CODEDEPLOY_GROUP }}
+          --deployment-group-name sketchday-deploy-group
