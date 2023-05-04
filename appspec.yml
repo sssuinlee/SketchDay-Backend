@@ -4,13 +4,21 @@ files:
   - source: /
     destination: /home/ubuntu/build/
     overwrite: yes
-
-# permissions:
-#   - object: /
-#     pattern: "**"
-#     owner: ubuntu
-#     group: ubuntu
-#     mode: 755
+ 
+permissions:
+  - object: /home/ubuntu/
+    owner: ubuntu
+    group: ubuntu
+    
+hooks:
+  AfterInstall:
+    - location: after-deploy.sh
+      timeout: 60
+      runas: root
+  ApplicationStart:
+    - location: server-start.sh
+      timeout: 60
+      runas: root
     
 # hooks:
 #   BeforeInstall:
