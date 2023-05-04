@@ -5,19 +5,19 @@ files:
     destination: /home/ubuntu/build/
     overwrite: yes
 
-permissions:
-  - object: /
-    pattern: "**"
-    owner: ubuntu
-    group: ubuntu
-    mode: 755
+# permissions:
+#   - object: /
+#     pattern: "**"
+#     owner: ubuntu
+#     group: ubuntu
+#     mode: 755
     
-hooks:
-  BeforeInstall:
-    - Location: /after-deploy.sh
-      timeout: 60
-      runas: ubuntu
-  AfterInstall:
-    - Location: /before-deploy.sh
-      timeout: 60
-      runas: ubuntu
+# hooks:
+#   BeforeInstall:
+#     - Location: /after-deploy.sh
+#       timeout: 60
+#       runas: ubuntu
+#   AfterInstall:
+#     - Location: /before-deploy.sh
+#       timeout: 60
+#       runas: ubuntu
