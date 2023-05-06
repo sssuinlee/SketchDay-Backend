@@ -13,6 +13,9 @@ https://docs.djangoproject.com/en/4.1/ref/settings/
 from pathlib import Path
 import os
 import environ
+import pymysql
+
+pymysql.install_as_MySQLdb()
 
 env = environ.Env(
     # set casting, default value
@@ -27,6 +30,20 @@ environ.Env.read_env(
     env_file=os.path.join(BASE_DIR, '.env')
 )
 
+SECRET_KEY = env('SECRET_KEY')
+
+
+DATABASES = {
+    'default' : {
+        'ENGINE' : 'django.db.backends.mysql',
+        'NAME' : 'sketch_day',
+        'USER' : 'root',
+        'PASSWORD' : env('PASSWORD'),
+        'HOST' : '127.0.0.1',
+        'PORT' : '3306'
+        
+    }
+}
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.1/howto/deployment/checklist/
@@ -46,7 +63,8 @@ INSTALLED_APPS = [
     'mypage.apps.MypageConfig',
     'diaryImg.apps.DiaryimgConfig',
     'rest_framework',
-    'storages'
+    'storages',
+    's3_storage'
 ]
 
 MIDDLEWARE = [
@@ -114,7 +132,7 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.1/howto/static-files/
 
-STATIC_URL = 'static/'
+STATIC_URL = '/static/'
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.1/ref/settings/#default-auto-field
@@ -137,5 +155,19 @@ AWS_S3_CUSTOM_DOMAIN = '%s.s3.%s.amazonaws.com' % (AWS_STORAGE_BUCKET_NAME,AWS_R
 AWS_S3_OBJECT_PARAMETERS = {
     'CacheControl': 'max-age=86400',
 }
+
+# DEFAULT_FILE_STORAGE = 'config.storages.MediaStorage'
+# STATICFILES_STORAGE = 'config.storages.StaticStorage'
 DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'path/to/store/my/files/')
+STATICFILES_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
+MEDIAFILES_LOCATION = 'media'
+STATICFILES_LOCATION = 'static'
+
+STATIC_DIR = os.path.join(BASE_DIR, 'static')
+STATICFILES_DIRS = [
+    STATIC_DIR,
+]
+
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles/')
+
+# MEDIA_ROOT = os.path.join(BASE_DIR, 'path/to/store/my/files/')

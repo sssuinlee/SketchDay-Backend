@@ -16,15 +16,19 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 from . import views
+from s3_storage.views import test
 
 # from diary import views
 
 urlpatterns = [
-    path('', views.index, name='index'),
+    # 로그인을 위한 메인 페이지
+    # path('', views.index, name='index'),
     path('admin/', admin.site.urls),
     path('diary/', include('diary.urls')),
     path('accounts/', include('django.contrib.auth.urls')),
-    path('signup/', views.SignUpView.as_view(), name='signup')
+    path('signup/', views.SignUpView.as_view(), name='signup'),
+    # S3연결 확인을 위한 메인 페이지
+    path('', test, name='test')
 ]
 
 # 404 Not Found error 발생 시 Django가 자동으로 아래의 view invoke
