@@ -23,8 +23,9 @@ urlpatterns = [
     path('', views.index, name='index'),
     path('admin/', admin.site.urls),
     path('diary/', include('diary.urls')),
-    path('accounts/', include('django.contrib.auth.urls')),
-    path('signup/', views.SignUpView.as_view(), name='signup')
+    path('auth/login', views.login_view, name='login_view'),
+    path('auth/logout', views.logout_view, name ='logout_view'),
+    # path('signup/', views.SignUpView.as_view(), name='signup')
 ]
 
 # 404 Not Found error 발생 시 Django가 자동으로 아래의 view invoke
