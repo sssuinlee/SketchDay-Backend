@@ -1,10 +1,10 @@
 {% if user.is_authenticated %}
 <h3>Login Success</h3>
 <p>Welcome!</p>
-<p><a href="{% url 'logout' %}">logout</a></p>
+<p><a href="{% url 'logout_view' %}">logout</a></p>
 {% else %}
 <p>
   If you want to login, go to
-  <a href="{% url 'login' %}">here</a>
+  <a href="{% url 'login_view' %}">here</a>
 </p>
 {% endif %}
