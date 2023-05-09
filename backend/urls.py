@@ -28,7 +28,10 @@ urlpatterns = [
     path('accounts/', include('django.contrib.auth.urls')),
     path('signup/', views.SignUpView.as_view(), name='signup'),
     # S3연결 확인을 위한 메인 페이지
-    path('', test, name='test')
+    path('', test, name='test'),
+    path('auth/login', views.login_view, name='login_view'),
+    path('auth/logout', views.logout_view, name ='logout_view'),
+    # path('signup/', views.SignUpView.as_view(), name='signup')
 ]
 
 # 404 Not Found error 발생 시 Django가 자동으로 아래의 view invoke
