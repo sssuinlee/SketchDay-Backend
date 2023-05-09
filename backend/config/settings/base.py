@@ -13,9 +13,9 @@ https://docs.djangoproject.com/en/4.1/ref/settings/
 from pathlib import Path
 import os
 import environ
-import pymysql
+# import pymysql
 
-pymysql.install_as_MySQLdb()
+# pymysql.install_as_MySQLdb()
 
 env = environ.Env(
     # set casting, default value
@@ -32,6 +32,9 @@ environ.Env.read_env(
 
 SECRET_KEY = env('SECRET_KEY')
 
+DEBUG = True
+
+ALLOWED_HOSTS = ['*']
 
 DATABASES = {
     'default' : {
@@ -50,7 +53,6 @@ DATABASES = {
 
 
 # Application definition
-
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -62,6 +64,7 @@ INSTALLED_APPS = [
     'diary.apps.DiaryConfig',
     'mypage.apps.MypageConfig',
     'diaryImg.apps.DiaryimgConfig',
+    'django.contrib.sites',
     'rest_framework',
     'storages',
     's3_storage'
@@ -90,6 +93,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'django.template.context_processors.request',
             ],
         },
     },
@@ -100,7 +104,6 @@ WSGI_APPLICATION = 'backend.wsgi.application'
 
 # Password validation
 # https://docs.djangoproject.com/en/4.1/ref/settings/#auth-password-validators
-
 AUTH_PASSWORD_VALIDATORS = [
     {
         'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
@@ -119,7 +122,6 @@ AUTH_PASSWORD_VALIDATORS = [
 
 # Internationalization
 # https://docs.djangoproject.com/en/4.1/topics/i18n/
-
 LANGUAGE_CODE = 'en-us'
 
 TIME_ZONE = 'Asia/Seoul'
@@ -136,13 +138,34 @@ STATIC_URL = '/static/'
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.1/ref/settings/#default-auto-field
-
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
+# Custome user model
 AUTH_USER_MODEL = 'account.User'
 
-# Login 후 redirect url 설정
-LOGIN_REDIRECT_URL = '/'
+# Verification
+EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+EMAIL_PORT = 587
+EMAIL_HOST = "smtp.gmail.com"
+EMAIL_HOST_USER = 'capstone.sketch.day@gmail.com'
+EMAIL_HOST_PASSWORD = env('EMAIL_HOST_PASSWORD')
+EMAIL_USE_TLS = True
+DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+
+# Django-redis
+CACHE_TTL = 300
+CACHES = {
+    'default': {
+        'BACKEND': 'django_redis.cache.RedisCache',
+        'LOCATION': 'redis://127.0.0.1:6379/1',
+        'OPTIONS': {
+            'CLIENT_CLASS': 'django_redis.client.DefaultClient',
+        },
+    }
+}
+
+# https
+CSRF_COOKIE_SECURE = True
 
 # AWS IAM
 AWS_ACCESS_KEY_ID = env('AWS_ACCESS_KEY_ID')
@@ -169,5 +192,3 @@ STATICFILES_DIRS = [
 ]
 
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles/')
-
-# MEDIA_ROOT = os.path.join(BASE_DIR, 'path/to/store/my/files/')
