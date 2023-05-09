@@ -23,7 +23,7 @@ urlpatterns = [
     # path('', views.index, name='index'),
     path('admin/', admin.site.urls),
     path('diary/', include('diary.urls')),
-    path('auth/', include('accounts.urls')),
+    path('auth/', include('account.urls')),
     # S3연결 확인을 위한 메인 페이지
     path('', test, name='test'),
 ]
