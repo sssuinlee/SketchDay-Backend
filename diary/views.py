@@ -155,7 +155,7 @@ def get_s3_presigned_url(request):
         client = boto3.client('s3',
                            aws_access_key_id=AWS_ACCESS_KEY_ID,
                            aws_secret_access_key=AWS_SECRET_ACCESS_KEY,
-                           region_name='ap-northeast-3')
+                           region_name='ap-northeast-2')
         print(client)
         s3 = boto3.resource('s3')
         buckets = s3.Bucket(name=AWS_STORAGE_BUCKET_NAME)
