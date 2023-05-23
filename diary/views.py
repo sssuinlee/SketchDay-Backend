@@ -15,6 +15,12 @@ import requests
 from PIL import Image
 from io import BytesIO
 
+# S3
+import boto3
+
+## env
+from django.conf import settings
+
 
 # @ensure_csrf_cookie
 @csrf_exempt
@@ -136,3 +142,33 @@ def diary_del(request):
                 return Response({'err_msg' : '서버 오류로 일기 삭제를 실패하였습니다.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         else:
             return Response({'err_msg' : '잘못된 접근입니다.'})
+    
+@csrf_exempt
+@api_view(('PUT',))      
+def get_s3_presigned_url(request):
+    if (request.method == 'PUT'):
+        AWS_ACCESS_KEY_ID = getattr(settings, 'AWS_ACCESS_KEY_ID', 'AWS_ACCESS_KEY_ID')
+        AWS_SECRET_ACCESS_KEY = getattr(settings, 'AWS_SECRET_ACCESS_KEY', 'AWS_SECRET_ACCESS_KEY')
+        AWS_STORAGE_BUCKET_NAME = getattr(settings, 'AWS_STORAGE_BUCKET_NAME', 'AWS_STORAGE_BUCKET_NAME')
+        AWS_S3_CUSTOM_DOMAIN = getattr(settings, 'AWS_S3_CUSTOM_DOMAIN', 'AWS_S3_CUSTOM_DOMAIN')
+
+        client = boto3.client('s3',
+                           aws_access_key_id=AWS_ACCESS_KEY_ID,
+                           aws_secret_access_key=AWS_SECRET_ACCESS_KEY,
+                           region_name='ap-northeast-3')
+        print(client)
+        s3 = boto3.resource('s3')
+        buckets = s3.Bucket(name=AWS_STORAGE_BUCKET_NAME)
+        print(buckets)
+        url = client.generate_presigned_url(
+            ClientMethod='put_object',
+            Params={
+                'Bucket': AWS_STORAGE_BUCKET_NAME,
+                'Key': 'test.txt',
+            },
+            # url 생성 후 10초가 지나면 접근 불가
+            ExpiresIn=3600
+        )
+        print(url)
+    
+    return Response({'s3_url' : url})
