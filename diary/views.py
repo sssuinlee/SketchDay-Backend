@@ -39,15 +39,15 @@ def diary_lists(request):
 
 
 # @ensure_csrf_cookie
-@csrf_exempt
+# @csrf_exempt
 @api_view(('POST',))
 def diary_create(request):
     if (request.method == 'POST'):
         # postman crsf 오류 해결되면 not 없애야 함
-        if(not request.user.is_authenticated):
+        if(request.user.is_authenticated):
             try:
-                # user_id = request.user.user_id
-                user_id = request.POST['user_id']
+                user_id = request.user.user_id
+                # user_id = request.POST['user_id']
                 title = request.POST['title']
                 content = request.POST['content']
                 # image_url = request.POST['image_url']

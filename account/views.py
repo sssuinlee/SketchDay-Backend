@@ -9,37 +9,83 @@ from .services import send_mail, email_auth_string
 from django.core.cache import cache
 from django.views.decorators.csrf import csrf_exempt, ensure_csrf_cookie
 from rest_framework.decorators import api_view
+from rest_framework.views import APIView
+from django.contrib.auth.hashers import check_password
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
-# Error 처리 view (DEBUG = False일 경우만 동작)
-def error_404_view(request, exception):
-    return HttpResponseNotFound("The page is not found")
+class UserLoginAPI(APIView):
+    def post(self, request):
+        email = request.data['email']
+        password = request.data['password']
+        try: 
+            user = User.objects.get(auth_email=email)
+        except User.DoesNotExist:
+            user = None
 
-# @ensure_csrf_cookie
-@csrf_exempt
-@api_view(('POST',))
-def login_view(request):
-    if(request.method == 'POST'):
-        if(request.user.is_anonymous):
-            print('request', request)
-            email = request.POST['email']
-            password = request.POST['password']
-            user = authenticate(request, username=email, password=password)
-        
-            if(user is not None):
-                login(request, user)
-                print('user 정보:', request.user)
-                return Response({'success' : '로그인에 성공하였습니다.'}, status=status.HTTP_200_OK)
-    
-            else:
-                return Response({'err_msg' : '로그인에 실패하였습니다. 올바른 아이디와 비밀번호를 입력했는지 확인해주세요.'}, 
-                                status=status.HTTP_400_BAD_REQUEST)
+        # 만약 username에 맞는 user가 존재하지 않는다면,
+        if user is None:
+            return Response(
+                {"message": "존재하지 않는 아이디입니다."}, status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # 비밀번호가 틀린 경우,
+        if not user.check_password(password):
+            return Response(
+                {"message": "비밀번호가 틀렸습니다."}, status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # user가 맞다면,
+        if user is not None:
+            print(user)
+            token = TokenObtainPairSerializer.get_token(user) # refresh 토큰 생성
+            refresh_token = str(token) # refresh 토큰 문자열화
+            access_token = str(token.access_token) # access 토큰 문자열화
+            response = Response(
+                {
+                    "message": "login success",
+                    "jwt_token": {
+                        "access_token": access_token,
+                        "refresh_token": refresh_token
+                    },
+                },
+                status=status.HTTP_200_OK
+            )
+
+            response.set_cookie("access_token", access_token, httponly=True)
+            response.set_cookie("refresh_token", refresh_token, httponly=True)
+            return response
         else:
-            return Response({'err_msg' : '잘못된 접근입니다.'}, 
-                                status=status.HTTP_403_FORBIDDEN)
+            return Response(
+                {"message": "로그인에 실패하였습니다."}, status=status.HTTP_400_BAD_REQUEST
+            )
+
+
+# # @ensure_csrf_cookie
+# @csrf_exempt
+# @api_view(('POST',))
+# def login_view(request):
+#     if(request.method == 'POST'):
+#         if(request.user.is_anonymous):
+#             print('request', request)
+#             email = request.POST['email']
+#             password = request.POST['password']
+#             user = authenticate(request, username=email, password=password)
+        
+#             if(user is not None):
+#                 login(request, user)
+#                 print('user 정보:', request.user)
+#                 return Response({'success' : '로그인에 성공하였습니다.'}, status=status.HTTP_200_OK)
+    
+#             else:
+#                 return Response({'err_msg' : '로그인에 실패하였습니다. 올바른 아이디와 비밀번호를 입력했는지 확인해주세요.'}, 
+#                                 status=status.HTTP_400_BAD_REQUEST)
+#         else:
+#             return Response({'err_msg' : '잘못된 접근입니다.'}, 
+#                                 status=status.HTTP_403_FORBIDDEN)
             
 
 # @ensure_csrf_cookie
-@csrf_exempt
+# @csrf_exempt
 @api_view(('GET',))
 def logout_view(request):
     if(request.method == 'GET'):
@@ -56,7 +102,7 @@ def logout_view(request):
 
 
 # @ensure_csrf_cookie
-@csrf_exempt
+# @csrf_exempt
 @api_view(('POST',))
 def send_verification_code(request):
     if(request.method == 'POST'):
@@ -87,7 +133,7 @@ def send_verification_code(request):
 
 
 # @ensure_csrf_cookie
-@csrf_exempt
+# @csrf_exempt
 @api_view(('POST',))
 def verify_code(request):
     if(request.method == 'POST'):
@@ -109,7 +155,7 @@ def verify_code(request):
 
 
 # @ensure_csrf_cookie
-@csrf_exempt
+# @csrf_exempt
 @api_view(('POST',))
 def signup_view(request):
     if(request.method == "POST"):
