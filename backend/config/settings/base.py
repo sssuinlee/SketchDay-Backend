@@ -24,19 +24,19 @@ from django.core.exceptions import ImproperlyConfigured
 BASE_DIR = Path(__file__).resolve().parent.parent.parent.parent
 
 
-secret_file = os.path.join(BASE_DIR, "secret.json")
+# secret_file = os.path.join(BASE_DIR, "secret.json")
 
-with open(secret_file) as f:
-    secrets = json.loads(f.read())
+# with open(secret_file) as f:
+#     secrets = json.loads(f.read())
 
-def get_secret(setting, secrets=secrets):
-    try:
-        return secrets[setting]
-    except KeyError:
-        error_msg = "Set the {0} environment variable".format(setting)
-        raise ImproperlyConfigured(error_msg)
+# def get_secret(setting, secrets=secrets):
+#     try:
+#         return secrets[setting]
+#     except KeyError:
+#         error_msg = "Set the {0} environment variable".format(setting)
+#         raise ImproperlyConfigured(error_msg)
 
-JWT_SECRET_KEY = get_secret('JWT_SECRET_KEY')
+# JWT_SECRET_KEY = get_secret('JWT_SECRET_KEY')
 
 env = environ.Env(
     # set casting, default value
@@ -138,7 +138,7 @@ SIMPLE_JWT = {
     'UPDATE_LAST_LOGIN': False,
     
     'ALGORITHM': 'HS256',
-    'SIGNING_KEY': JWT_SECRET_KEY,
+    'SIGNING_KEY': SECRET_KEY,
     'VERIFYING_KEY': None,
     'AUDIENCE': None,
     'ISSUER': None,
