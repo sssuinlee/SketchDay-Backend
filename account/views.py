@@ -20,9 +20,8 @@ def error_404_view(request, exception):
 def login_view(request):
     if(request.method == 'POST'):
         if(request.user.is_anonymous):
-            print('request', request)
-            email = request.POST['email']
-            password = request.POST['password']
+            email = request.data['email']
+            password = request.data['password']
             user = authenticate(request, username=email, password=password)
         
             if(user is not None):
@@ -60,7 +59,7 @@ def logout_view(request):
 @api_view(('POST',))
 def send_verification_code(request):
     if(request.method == 'POST'):
-        target_email = request.POST['email']
+        target_email = request.data['email']
         try:
             exist_user = User.objects.get(auth_email=target_email)
         except User.DoesNotExist:
@@ -91,8 +90,8 @@ def send_verification_code(request):
 @api_view(('POST',))
 def verify_code(request):
     if(request.method == 'POST'):
-        verify_email = request.POST['email']
-        verify_code = request.POST['verifyCode']
+        verify_email = request.data['email']
+        verify_code = request.data['verifyCode']
         cache_code = cache.get(verify_email)
         
         print(verify_email)
@@ -114,7 +113,7 @@ def verify_code(request):
 def signup_view(request):
     if(request.method == "POST"):
         if(request.user.is_anonymous):
-            auth_email = request.POST['email']
+            auth_email = request.data['email']
             try:
                 exist_user = User.objects.get(auth_email=auth_email)
             except User.DoesNotExist:
@@ -123,9 +122,9 @@ def signup_view(request):
             if(exist_user is None):
                 user = User.objects.create_user(
                     auth_email=auth_email,
-                    password=request.POST['password'],
-                    name=request.POST['name'],
-                    birth=request.POST['birth'],
+                    password=request.data['password'],
+                    name=request.data['name'],
+                    birth=request.data['birth'],
                 )
                 print(user)
                 return Response({'success':'성공적으로 가입이 완료되었습니다.'}, status=status.HTTP_200_OK)

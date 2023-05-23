@@ -53,12 +53,12 @@ def diary_create(request):
         if(not request.user.is_authenticated):
             try:
                 # user_id = request.user.user_id
-                user_id = request.POST['user_id']
-                title = request.POST['title']
-                content = request.POST['content']
+                user_id = request.data['user_id']
+                title = request.data['title']
+                content = request.data['content']
                 # image_url = request.POST['image_url']
-                wea_id = request.POST['wea_id']
-                emo_id = request.POST['emo_id']
+                wea_id = request.data['wea_id']
+                emo_id = request.data['emo_id']
                 user = User.objects.get(user_id=user_id)
                 emo = Emotion.objects.get(emo_id=emo_id)
                 wea = Weather.objects.get(wea_id=wea_id)
@@ -83,8 +83,8 @@ def diary_update(request):
         # postman crsf 오류 해결되면 not 없애야 함
         if(not request.user.is_authenticated):
             try:
-                diary_id = request.GET['id']
-                new_content = request.POST['new_content']
+                diary_id = request.data['id']
+                new_content = request.data['new_content']
                 diary = Diary.objects.get(diary_id=diary_id)
                 diary.content = new_content
                 diary.save()
@@ -103,7 +103,7 @@ def create_img(request):
     if (request.method == 'PATCH'):
         if(not request.user.is_authenticated):
             try:
-                diary_id = request.GET['id']
+                diary_id = request.data['id']
                 diary = Diary.objects.get(diary_id=diary_id)
                 diary_img = DiaryImg.objects.get(diary_id=diary)
                 prompt = diary_img.prompt
@@ -144,7 +144,7 @@ def send_img_create_req(prompt):
 def diary_del(request):
     if (request.method == 'DELETE'):
         if(not request.user.is_authenticated):
-            diary_id = request.GET['id']
+            diary_id = request.data['id']
             try:
                 target_diary = Diary.objects.get(diary_id=diary_id)
                 target_diary.delete()
