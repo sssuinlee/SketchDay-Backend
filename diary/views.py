@@ -95,11 +95,27 @@ def diary_update(request):
         else:
             return Response({'err_msg' : '잘못된 접근입니다.'}, status=status.HTTP_403_FORBIDDEN)
 
+
 # @ensure_csrf_cookie
 @csrf_exempt
 @api_view(('POST',))
 def create_img(request):
-    return
+    if (request.method == 'PATCH'):
+        if(not request.user.is_authenticated):
+            try:
+                diary_id = request.GET['id']
+                diary = Diary.objects.get(diary_id=diary_id)
+                diary_img = DiaryImg.objects.get(diary_id=diary)
+                prompt = diary_img.prompt
+                url = send_img_create_req(prompt)
+                diary.image_url = url
+                return Response({'message' : '그림 생성을 성공하였습니다.', 'url' : url}, status=status.HTTP_200_OK)
+            except:
+                return Response({'err_msg' : '서버 오류로 일기 수정을 실패하였습니다.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        else: 
+            return Response({'err_msg' : '잘못된 접근입니다.'}, status=status.HTTP_403_FORBIDDEN)
+                
+                
 
 # 사용자가 일기 create할 때 호출하여 ml 서버로 request 전송, 응답으로 prompt 받음
 def send_summary_req(full_diary):
@@ -109,21 +125,16 @@ def send_summary_req(full_diary):
     print('res.statuscode :', res.status_code)
     print('res.json :', res.json)
     print('res.text :', res.text)
-    return res.content # prompt
+    prompt = res.content
+    return prompt # prompt
 
 
 # 사용자가 일기 modify할 때 호출하여 ml 서버로 request 전송 
-# -> 응답 받고 S3에 이미지 저장, url 반환하여 DB에 저장 
-# -> 사용자에게 이미지 url 전송 
+# -> url 응답 받고 반환하여 DB에 저장
+# -> 프론트엔드한테 이미지 url 전송
 def send_img_create_req(prompt):
     res = requests.post('http://localhost:8000/ml/generateImage/', data = {'prompt' : prompt})
-    # res가 binary여야 함
-    # 이미지 오픈
-    i = Image.open(BytesIO(res.content))
-    
-    # 이미지 S3에 저장, url DB에 저장하는 로직
-    
-    url = ''
+    url = res.content
     return url
 
 
