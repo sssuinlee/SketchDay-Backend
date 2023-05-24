@@ -9,10 +9,10 @@ from .serializers import BaseDiarySerializer, DiaryListsSerializer
 import itertools
 from operator import itemgetter
 from account.services import user_authenticate
+import boto3
+from .services import send_img_create_req, send_summary_req
+import backend.config.settings.base as settings
 
-# ml 서버로 request 전송하기
-# https://docs.python-requests.org/en/latest/user/quickstart/#make-a-request
-import requests
 
 
 @ensure_csrf_cookie
@@ -47,6 +47,7 @@ def diary_lists(request):
             return Response({'err_msg' : '서버 오류입니다.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
+
 @ensure_csrf_cookie
 @api_view(('POST',))
 def diary_create(request):
@@ -65,7 +66,7 @@ def diary_create(request):
                 diary = Diary.objects.create(title=title, content=content, emo_id=emo, wea_id=wea, user_id=user)
                 
                 prompt = send_summary_req(content)
-                # DiaryImg.objects.create(prompt=prompt, diary_id=diary)
+                DiaryImg.objects.create(prompt=prompt, diary_id=diary)
 
                 response = Response({'message' : '일기 저장을 성공하였습니다.', 'diary_id' : diary.diary_id}, status=status.HTTP_200_OK)
                 if(len(auth_tuple)==4):
@@ -80,6 +81,8 @@ def diary_create(request):
             
         except:
             return Response({'err_msg' : '서버 오류입니다.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
 
 @ensure_csrf_cookie
 @api_view(('GET',))
@@ -108,7 +111,6 @@ def diary_one(request, diaryId):
             return Response({'err_msg' : '서버 오류입니다.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)        
                 
             
-                
                 
 @ensure_csrf_cookie
 @api_view(('PATCH',))
@@ -141,32 +143,29 @@ def diary_update(request):
 @ensure_csrf_cookie
 @api_view(('POST',))
 def create_img(request):
-    return
+    if (request.method == 'PATCH'):
+        auth_tuple = user_authenticate(request.COOKIES)
+        try:
+            if(auth_tuple[0]):
+                diary_id = request.GET['id']
+                diary = Diary.objects.get(diary_id=diary_id)
+                diary_img = DiaryImg.objects.get(diary_id=diary)
+                prompt = diary_img.prompt
+                url = send_img_create_req(prompt)
+                diary.image_url = url
+                response = Response({'message' : '그림 생성을 성공하였습니다.', 'url' : url}, status=status.HTTP_200_OK)
+                if(len(auth_tuple)==4):
+                    response.set_cookie("access_token", auth_tuple[2], httponly=True)
+                    response.set_cookie("refresh_token", auth_tuple[3], httponly=True)            
+                return response
+            
+            else:
+                if(len(auth_tuple)==2):
+                    return Response({'message' : auth_tuple[1]}, status=status.HTTP_400_BAD_REQUEST)   
+                return Response({'err_msg' : '잘못된 접근입니다.'}, status=status.HTTP_400_BAD_REQUEST)         
 
-# 사용자가 일기 create할 때 호출하여 ml 서버로 request 전송, 응답으로 prompt 받음
-def send_summary_req(full_diary):
-    res = requests.post('http://localhost:8000/ml/summaryDiary/', data = {'full_diary' : full_diary})
-    print('res :', res)
-    print('res.content', res.content)
-    print('res.statuscode :', res.status_code)
-    print('res.json :', res.json)
-    print('res.text :', res.text)
-    return res.content # prompt
-
-
-# 사용자가 일기 modify할 때 호출하여 ml 서버로 request 전송 
-# -> 응답 받고 S3에 이미지 저장, url 반환하여 DB에 저장 
-# -> 사용자에게 이미지 url 전송 
-def send_img_create_req(prompt):
-    res = requests.post('http://localhost:8000/ml/generateImage/', data = {'prompt' : prompt})
-    # res가 binary여야 함
-    # 이미지 오픈
-    i = Image.open(BytesIO(res.content))
-    
-    # 이미지 S3에 저장, url DB에 저장하는 로직
-    
-    url = ''
-    return url
+        except:
+            return Response({'err_msg' : '서버 오류입니다.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 @ensure_csrf_cookie
@@ -192,5 +191,37 @@ def diary_del(request):
             
         except:
             return Response({'err_msg' : '서버 오류입니다.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    
+    
+@csrf_exempt
+@api_view(('PUT',))      
+def get_s3_presigned_url(request):
+    if (request.method == 'PUT'):
+        AWS_ACCESS_KEY_ID = getattr(settings, 'AWS_ACCESS_KEY_ID', 'AWS_ACCESS_KEY_ID')
+        AWS_SECRET_ACCESS_KEY = getattr(settings, 'AWS_SECRET_ACCESS_KEY', 'AWS_SECRET_ACCESS_KEY')
+        AWS_STORAGE_BUCKET_NAME = getattr(settings, 'AWS_STORAGE_BUCKET_NAME', 'AWS_STORAGE_BUCKET_NAME')
+        AWS_S3_CUSTOM_DOMAIN = getattr(settings, 'AWS_S3_CUSTOM_DOMAIN', 'AWS_S3_CUSTOM_DOMAIN')
+
+        client = boto3.client('s3',
+                           aws_access_key_id=AWS_ACCESS_KEY_ID,
+                           aws_secret_access_key=AWS_SECRET_ACCESS_KEY,
+                           region_name='ap-northeast-2')
+        print(client)
+        s3 = boto3.resource('s3')
+        buckets = s3.Bucket(name=AWS_STORAGE_BUCKET_NAME)
+        print(buckets)
+        url = client.generate_presigned_url(
+            ClientMethod='put_object',
+            Params={
+                'Bucket': AWS_STORAGE_BUCKET_NAME,
+                'Key': 'test.txt',
+            },
+            # url 생성 후 10초가 지나면 접근 불가
+            ExpiresIn=3600
+        )
+        print(url)
+    
+    return Response({'s3_url' : url})
 
 
