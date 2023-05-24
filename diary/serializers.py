@@ -2,9 +2,15 @@ from rest_framework import serializers
 from .models import Diary
 
 class BaseDiarySerializer(serializers.Serializer):
-    class Meta:
-        model = Diary
-        fields = ["diary_id", "user_id", "wea_id", "emo_id", 'title', 'content', 'image_url','created_at', 'updated_at']
+    diary_id = serializers.UUIDField()
+    title = serializers.CharField(max_length=120)
+    content = serializers.CharField(max_length=255)
+    emo_id = serializers.IntegerField()
+    wea_id = serializers.IntegerField()
+    image_url = serializers.CharField(max_length=200)
+    
+    def create(self, **validated_data):
+        return Diary.create(**validated_data)
 
 class DiaryListsSerializer(serializers.Serializer):
     year_month = serializers.DateField()

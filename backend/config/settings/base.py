@@ -23,21 +23,6 @@ from django.core.exceptions import ImproperlyConfigured
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent.parent.parent
 
-
-# secret_file = os.path.join(BASE_DIR, "secret.json")
-
-# with open(secret_file) as f:
-#     secrets = json.loads(f.read())
-
-# def get_secret(setting, secrets=secrets):
-#     try:
-#         return secrets[setting]
-#     except KeyError:
-#         error_msg = "Set the {0} environment variable".format(setting)
-#         raise ImproperlyConfigured(error_msg)
-
-# JWT_SECRET_KEY = get_secret('JWT_SECRET_KEY')
-
 env = environ.Env(
     # set casting, default value
     DEBUG=(bool, False)
@@ -62,7 +47,6 @@ DATABASES = {
         'PASSWORD' : env('PASSWORD'),
         'HOST' : '127.0.0.1',
         'PORT' : '3306'
-        
     }
 }
 
@@ -125,14 +109,18 @@ TEMPLATES = [
 WSGI_APPLICATION = 'backend.wsgi.application'
 
 REST_FRAMEWORK = {
-    'DEFAULT_AUTHENTICATION_CLASSES' : {
+    'DEFAULT_AUTHENTICATION_CLASSES' : (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
-    }
+    ),
+    'DEFAULT_PARSER_CLASSES': [
+        'rest_framework.parsers.JSONParser',
+    ]
 }
+
 
 SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(minutes=300),
-    'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=300),
     'ROTATE_REFRESH_TOKENS': False,
     'BLACKLIST_AFTER_ROTATION': True,
     'UPDATE_LAST_LOGIN': False,

@@ -1,8 +1,15 @@
 import string
 import random
 import threading
+import jwt
 from backend.config.settings.base import EMAIL_HOST_USER
 from django.core.mail import EmailMultiAlternatives
+from rest_framework_simplejwt.tokens import AccessToken
+from rest_framework_simplejwt.serializers import TokenRefreshSerializer
+from rest_framework_simplejwt.exceptions import TokenError
+from .models import User
+from .serializers import BaseUserSerializer
+from backend.config.settings.base import SECRET_KEY
 
 
 # 제목, 메세지, 송신자, 수신자 리스트, fail_silently(false인 경우 메일 발송에 실패했을 때 알림), html
@@ -44,3 +51,45 @@ def email_auth_string():
         auth_string += random.choice(string_pool)
     
     return auth_string 
+
+
+def user_authenticate(cookies):
+    try:
+        access_token = cookies['access_token']
+        payload = jwt.decode(access_token, SECRET_KEY, algorithms=['HS256'])
+        auth_email = payload['user_id']
+        user = User.objects.get(auth_email=auth_email)
+        serializer = BaseUserSerializer(user)
+        user_data = serializer.data
+        return (True, user_data)
+    
+    # access token 만료
+    except jwt.exceptions.ExpiredSignatureError:
+        data = {'refresh': cookies.get('refresh_token', None)}
+        serializer = TokenRefreshSerializer(data=data)
+        
+        try:
+            if serializer.is_valid(raise_exception=True):
+                access_token = serializer.validated_data['access']
+                refresh_token = cookies.get('refresh_token', None)
+                payload = jwt.decode(access_token, SECRET_KEY, algorithms=['HS256'])
+                auth_email = payload['user_id']
+                user = User.objects.get(auth_email=auth_email)
+                serializer = BaseUserSerializer(user)
+                user_data = serializer.data
+                return (True, user_data, access_token, refresh_token)
+            
+        # refresh token 만료 = 로그인 만료
+        except TokenError:
+            return (False, '로그인이 만료되었습니다.')
+    
+    # 위조되거나 잘못됨
+    except jwt.exceptions.InvalidTokenError:
+        return (False,)
+    
+
+def is_logged_in(cookies):
+    access_token = cookies.get('access_token', None)
+    if(access_token is None):
+        return False
+    return True
