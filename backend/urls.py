@@ -18,7 +18,6 @@ from django.urls import path, include
 from . import views
 from rest_framework_simplejwt.views import (
     TokenObtainPairView, # 토큰 생성해주는 뷰
-    TokenRefreshView, # refresh 토큰으로 access 토큰을 재발급하는 뷰
     TokenVerifyView, # 토큰 유효성 확인 뷰
 )
 from s3_storage.views import test
@@ -32,7 +31,6 @@ urlpatterns = [
     path('mypage/', include('mypage.urls')),
     path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
 	path('api/token/verify/', TokenVerifyView.as_view(), name='token_verify'),
-    path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     # S3연결 확인을 위한 메인 페이지
     path('', test, name='test'),
 ]
