@@ -63,8 +63,8 @@ def diary_create(request):
             wea = Weather.objects.get(wea_id=wea_id)
             diary = Diary.objects.create(title=title, content=content, emo_id=emo, wea_id=wea, user_id=user)
                 
-            prompt = send_summary_req(content)
-            DiaryImg.objects.create(prompt=prompt, diary_id=diary)
+            #prompt = send_summary_req(content)
+            #DiaryImg.objects.create(prompt=prompt, diary_id=diary)
 
             return Response({'message' : '일기 저장을 성공하였습니다.', 'diary_id' : diary.diary_id}, status=status.HTTP_200_OK)
             
