@@ -1,9 +1,3 @@
-<<<<<<< HEAD
-from django.http import HttpResponseNotFound
-from django.shortcuts import render
-from django.contrib.auth import authenticate, login, logout
-=======
->>>>>>> jwt
 from rest_framework.response import Response
 from rest_framework import status
 from django.template.loader import render_to_string
@@ -24,17 +18,6 @@ class UserLoginAPI(APIView):
         except User.DoesNotExist:
             user = None
 
-<<<<<<< HEAD
-# @ensure_csrf_cookie
-@csrf_exempt
-@api_view(('POST',))
-def login_view(request):
-    if(request.method == 'POST'):
-        if(request.user.is_anonymous):
-            email = request.data['email']
-            password = request.data['password']
-            user = authenticate(request, username=email, password=password)
-=======
         # 만약 username에 맞는 user가 존재하지 않는다면,
         if user is None:
             return Response(
@@ -46,7 +29,6 @@ def login_view(request):
             return Response(
                 {"err_message": "비밀번호가 틀렸습니다."}, status=status.HTTP_400_BAD_REQUEST
             )
->>>>>>> jwt
         
         # user가 맞다면,
         if user is not None:
@@ -79,14 +61,14 @@ class UserLogoutAPI(APIView):
             response = Response({
                 'message' : 'Logout Success'
             }, status=status.HTTP_200_OK)
-            response.delete_cookie('access')
-            response.delete_cookie('refresh')
+            response.delete_cookie('access_token')
+            response.delete_cookie('refresh_token')
             return response
 
 
 @ensure_csrf_cookie
 @api_view(('POST',))
-def send_verification_code(request):
+def signup_send_verification_code(request):
     if(request.method == 'POST'):
         target_email = request.data['email']
         try:
@@ -116,13 +98,8 @@ def send_verification_code(request):
 
 @ensure_csrf_cookie
 @api_view(('POST',))
-def verify_code(request):
+def signup_verify_code(request):
     if(request.method == 'POST'):
-<<<<<<< HEAD
-        verify_email = request.data['email']
-        verify_code = request.data['verifyCode']
-        cache_code = cache.get(verify_email)
-=======
         try:
             verify_email = request.data['email']
             verify_code = request.data['verifyCode']
@@ -137,7 +114,6 @@ def verify_code(request):
                 return Response({'success':'성공적으로 인증되었습니다.'}, status=status.HTTP_200_OK)
             
             return Response({'err_msg' : '잘못된 인증번호입니다.'}, status=status.HTTP_400_BAD_REQUEST)
->>>>>>> jwt
         
         except:
             return Response({"err_msg" : "인증을 실패했습니다."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
@@ -147,11 +123,7 @@ def verify_code(request):
 @api_view(('POST',))
 def signup_view(request):
     if(request.method == "POST"):
-<<<<<<< HEAD
-        if(request.user.is_anonymous):
-=======
         try:
->>>>>>> jwt
             auth_email = request.data['email']
             try:
                 exist_user = User.objects.get(auth_email=auth_email)
@@ -170,11 +142,6 @@ def signup_view(request):
             
             else:
                 return Response({'err_msg' : '이미 가입된 사용자입니다.'}, status=status.HTTP_400_BAD_REQUEST)
-<<<<<<< HEAD
-        else:
-            return Response({'err_msg' : '잘못된 접근입니다.'}, 
-                                status=status.HTTP_403_FORBIDDEN)
-=======
         except:
             return Response({"err_msg" : "서버 오류로 회원가입에 실패했습니다."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
@@ -257,17 +224,68 @@ def find_password_verify_code(request):
             return Response({'err_msg' : '임시 비밀번호 발급을 실패했습니다.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
-# @ensure_csrf_cookie
-# @api_view(('POST',))
-# def reset_password(request):
-#     if(request.method == 'POST'):
-#         auth_tuple = user_authenticate(request.COOKIES)
-#         try:
-#             if(auth_tuple[0]):
-#                 new_password = request.data['new_password']
-#                 auth_email = auth_tuple[1]['auth_email']
-#                 user = User.objects.get(auth_email=auth_email)
+@ensure_csrf_cookie
+@api_view(('POST',))
+def reset_password_verify(request):
+    if(request.method == 'POST'):
+        auth_tuple = user_authenticate(request.COOKIES)
+        try:
+            if(auth_tuple[0]):
+                curr_password = request.data['curr_password']
+                user_id = auth_tuple[1]['user_id']
+                user = User.objects.get(user_id=user_id)
                 
+                response = Response({'success' : '비밀번호 인증 성공'}, status=status.HTTP_200_OK)
+                
+                if(len(auth_tuple) == 4):
+                    response.set_cookie('access_token', auth_tuple[2], httponly=True)
+                    response.set_cookie('refresh_token', auth_tuple[3],  httponly=True)
+                
+                if(user.check_password(curr_password)):
+                    return response
+                
+                return Response({'err_msg':'비밀번호가 틀렸습니다.'}, status=status.HTTP_400_BAD_REQUEST)
+            
+            else:
+                if(len(auth_tuple)==2):
+                    return Response({'message' : auth_tuple[1]}, status=status.HTTP_400_BAD_REQUEST)   
+                return Response({'err_msg' : '잘못된 접근입니다.'}, status=status.HTTP_400_BAD_REQUEST)
+            
+        except:
+            return Response({'err_msg':'서버 오류로 인증을 실패하였습니다.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)                
+  
+
+
+@ensure_csrf_cookie
+@api_view(('POST',))
+def reset_password(request):
+    if(request.method == 'POST'):
+        auth_tuple = user_authenticate(request.COOKIES)
+        try:
+            if(auth_tuple[0]):
+                new_password = request.data['new_password']
+                user_id = auth_tuple[1]['user_id']
+                user = User.objects.get(user_id=user_id)
+                user.set_password(new_password)
+                user.save()
+                
+                response = Response({'success' : '비밀번호 변경 성공'}, status=status.HTTP_200_OK)
+                
+                if(len(auth_tuple) == 4):
+                    response.set_cookie('access_token', auth_tuple[2], httponly=True)
+                    response.set_cookie('refresh_token', auth_tuple[3],  httponly=True)
+                
+                return response
+            
+            else:
+                if(len(auth_tuple)==2):
+                    return Response({'message' : auth_tuple[1]}, status=status.HTTP_400_BAD_REQUEST)   
+                return Response({'err_msg' : '잘못된 접근입니다.'}, status=status.HTTP_400_BAD_REQUEST)
+            
+        except:
+            return Response({'err_msg':'서버 오류로 인증을 실패하였습니다.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)                
+  
+
 
 @ensure_csrf_cookie
 @api_view(('DELETE',))
@@ -294,4 +312,3 @@ def delete_user(request):
         
         except:
             return Response({'err_message':'회원탈퇴 실패'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
->>>>>>> jwt
