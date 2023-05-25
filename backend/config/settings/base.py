@@ -17,8 +17,15 @@ from datetime import timedelta
 import json
 from django.core.exceptions import ImproperlyConfigured
 
+from datetime import timedelta
+import json
+from django.core.exceptions import ImproperlyConfigured
+
 # import pymysql
 # pymysql.install_as_MySQLdb()
+
+# Build paths inside the project like this: BASE_DIR / 'subdir'.
+BASE_DIR = Path(__file__).resolve().parent.parent.parent.parent
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent.parent.parent
@@ -72,15 +79,21 @@ INSTALLED_APPS = [
     'dj_rest_auth',
     'dj_rest_auth.registration',
     'rest_framework.authtoken',
+    'rest_framework_simplejwt',
+    'dj_rest_auth',
+    'dj_rest_auth.registration',
+    'rest_framework.authtoken',
     'storages',
     's3_storage'
 ]
 
 # request 들어오면 순서대로 실행
+# request 들어오면 순서대로 실행
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
+    'django.middleware.csrf.CsrfViewMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
@@ -216,6 +229,8 @@ CACHES = {
 # }
 
 # https
+CSRF_COOKIE_SECURE = True
+CSRF_COOKIE_HTTPONLY = True
 CSRF_COOKIE_SECURE = True
 CSRF_COOKIE_HTTPONLY = True
 

@@ -2,8 +2,15 @@ import string
 import random
 import threading
 import jwt
+import jwt
 from backend.config.settings.base import EMAIL_HOST_USER
 from django.core.mail import EmailMultiAlternatives
+from rest_framework_simplejwt.tokens import AccessToken
+from rest_framework_simplejwt.serializers import TokenRefreshSerializer
+from rest_framework_simplejwt.exceptions import TokenError
+from .models import User
+from .serializers import BaseUserSerializer
+from backend.config.settings.base import SECRET_KEY
 from rest_framework_simplejwt.tokens import AccessToken
 from rest_framework_simplejwt.serializers import TokenRefreshSerializer
 from rest_framework_simplejwt.exceptions import TokenError
