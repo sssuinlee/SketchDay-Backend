@@ -2,8 +2,15 @@ import string
 import random
 import threading
 import jwt
+import jwt
 from backend.config.settings.base import EMAIL_HOST_USER
 from django.core.mail import EmailMultiAlternatives
+from rest_framework_simplejwt.tokens import AccessToken
+from rest_framework_simplejwt.serializers import TokenRefreshSerializer
+from rest_framework_simplejwt.exceptions import TokenError
+from .models import User
+from .serializers import BaseUserSerializer
+from backend.config.settings.base import SECRET_KEY
 from rest_framework_simplejwt.tokens import AccessToken
 from rest_framework_simplejwt.serializers import TokenRefreshSerializer
 from rest_framework_simplejwt.exceptions import TokenError
@@ -86,11 +93,11 @@ def user_authenticate(cookies):
     # 위조되거나 잘못됨
     except jwt.exceptions.InvalidTokenError:
         return (False,)
-
+    
     # 토큰이 없음 = 로그인 상태가 아님
     except KeyError:
         return (False,)
-  
+    
 
 def is_logged_in(cookies):
     access_token = cookies.get('access_token', None)
