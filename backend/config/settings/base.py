@@ -79,15 +79,10 @@ INSTALLED_APPS = [
     'dj_rest_auth',
     'dj_rest_auth.registration',
     'rest_framework.authtoken',
-    'rest_framework_simplejwt',
-    'dj_rest_auth',
-    'dj_rest_auth.registration',
-    'rest_framework.authtoken',
     'storages',
     's3_storage'
 ]
 
-# request 들어오면 순서대로 실행
 # request 들어오면 순서대로 실행
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -209,7 +204,7 @@ EMAIL_HOST_PASSWORD = env('EMAIL_HOST_PASSWORD')
 EMAIL_USE_TLS = True
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 
-# Django-redis
+
 CACHE_TTL = 300
 CACHES = {
     'default': {
@@ -218,6 +213,7 @@ CACHES = {
     }
 }
 
+# Django-redis
 # CACHES = {
 #     'default': {
 #         'BACKEND': 'django_redis.cache.RedisCache',
@@ -229,8 +225,6 @@ CACHES = {
 # }
 
 # https
-CSRF_COOKIE_SECURE = True
-CSRF_COOKIE_HTTPONLY = True
 CSRF_COOKIE_SECURE = True
 CSRF_COOKIE_HTTPONLY = True
 

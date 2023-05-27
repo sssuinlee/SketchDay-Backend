@@ -29,7 +29,7 @@ def diary_lists(request):
             user = request.user
             user_id = user.user_id
             res_data_raw = Diary.objects.filter(user_id = user_id) \
-                .extra(select={'year_month': "DATE_FORMAT(created_at, '%%Y-%%m')"}) \
+                .extra(select={'year_month': "DATE_FORMAT(date, '%%Y-%%m')"}) \
                 .values('year_month', 'diary_id', 'image_url')
             serializer = DiaryListsSerializer(res_data_raw, many=True)
             res_data_json = serializer.data
@@ -54,17 +54,17 @@ def diary_create(request):
         try:
             user = request.user
             user_id = user.user_id
-            title = request.data['title']
+            date = request.data['date']
             content = request.data['content']
             wea_id = request.data['wea_id']
             emo_id = request.data['emo_id']
             user = User.objects.get(user_id=user_id)
             emo = Emotion.objects.get(emo_id=emo_id)
             wea = Weather.objects.get(wea_id=wea_id)
-            diary = Diary.objects.create(title=title, content=content, emo_id=emo, wea_id=wea, user_id=user)
+            diary = Diary.objects.create(date=date, content=content, emo_id=emo, wea_id=wea, user_id=user)
                 
-            prompt = send_summary_req(content)
-            DiaryImg.objects.create(prompt=prompt, diary_id=diary)
+            # prompt = send_summary_req(content)
+            # DiaryImg.objects.create(prompt=prompt, diary_id=diary)
 
             return Response({'message' : '일기 저장을 성공하였습니다.', 'diary_id' : diary.diary_id}, status=status.HTTP_200_OK)
             
@@ -80,7 +80,7 @@ def diary_one(request, diaryId):
     if(request.method == 'GET'):
         try:
             diary_id = diaryId
-            diary = Diary.objects.filter(diary_id=diary_id).values('diary_id', 'title', 'content', 'emo_id', 'wea_id', 'image_url')
+            diary = Diary.objects.filter(diary_id=diary_id).values('diary_id', 'date', 'content', 'emo_id', 'wea_id', 'image_url')
             serializer = BaseDiarySerializer(diary, many=True)                    
             res = serializer.data
             
