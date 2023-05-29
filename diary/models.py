@@ -20,7 +20,6 @@ class Diary(models.Model):
     user_id = models.ForeignKey('account.User', on_delete=models.CASCADE, default='') # account app의 User 참조, diary_diary_user_id라는 중간 테이블 생김
     wea_id = models.ForeignKey(Weather, on_delete=models.PROTECT)
     emo_id = models.ForeignKey(Emotion, on_delete=models.PROTECT)
-    # title = models.CharField(max_length=120, null=True, default='')
     content = models.CharField(max_length=255, null=False)
     date = models.DateField(null=False)
     image_url = models.CharField(max_length=200, null=True)
@@ -28,7 +27,7 @@ class Diary(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
     
     def __str__(self):
-        return self.title
+        return self.content
 
 class DiaryImg(models.Model):
     diary_img_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
