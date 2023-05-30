@@ -5,12 +5,9 @@ import requests
 # 사용자가 일기 create할 때 호출하여 ml 서버로 request 전송, 응답으로 prompt 받음
 def send_summary_req(full_diary):
     res = requests.post('http://localhost:8000/ml/summaryDiary/', data = {'full_diary' : full_diary})
-    print('res :', res)
-    print('res.content', res.content)
     print('res.statuscode :', res.status_code)
-    print('res.json :', res.json)
-    print('res.text :', res.text)
-    prompt = res.content
+    print('res.json()', res.json()['prompt'])
+    prompt = res.json()['prompt']
     return prompt # prompt
 
 
@@ -19,5 +16,15 @@ def send_summary_req(full_diary):
 # -> 프론트엔드한테 이미지 url 전송
 def send_img_create_req(prompt):
     res = requests.post('http://localhost:8000/ml/generateImage/', data = {'prompt' : prompt})
-    url = res.content
+    url = res.json()['url']
     return url
+
+
+#######################################################################
+
+def send_img(url):
+    res = requests.put('http://localhost:8000/ml/summaryDiary/', data = {'url' : url})
+    response_data = res.json()
+    print("Response data:", response_data)  ### debug
+    url = response_data.get('s3_url')
+    return {'s3_url': url}
