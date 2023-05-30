@@ -17,11 +17,8 @@ from datetime import timedelta
 import json
 from django.core.exceptions import ImproperlyConfigured
 
-from datetime import timedelta
-import json
-from django.core.exceptions import ImproperlyConfigured
-
 # import pymysql
+# pymysql.version_info = (1, 4, 3, "final", 0)
 # pymysql.install_as_MySQLdb()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.

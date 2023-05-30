@@ -8,5 +8,6 @@ urlpatterns = [
     path('del', views.diary_del),
     path('update', views.diary_update),
     path('createImg', views.create_img),
-    path('getS3Url', views.get_s3_presigned_url)
+    path('getS3Url', views.get_s3_presigned_url),
+    path('uploadImg', views.diary_uploadImg)
 ]
