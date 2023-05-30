@@ -3,7 +3,7 @@ from .models import Diary
 
 class BaseDiarySerializer(serializers.Serializer):
     diary_id = serializers.UUIDField()
-    title = serializers.CharField(max_length=120)
+    date = serializers.DateField()
     content = serializers.CharField(max_length=255)
     emo_id = serializers.IntegerField()
     wea_id = serializers.IntegerField()
