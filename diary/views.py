@@ -31,11 +31,13 @@ def diary_lists(request):
             user = request.user
             user_id = user.user_id
             res_data_raw = Diary.objects.filter(user_id = user_id) \
-                .extra(select={'year_month': "DATE_FORMAT(created_at, '%%Y-%%m')"}) \
-                .values('year_month', 'diary_id', 'image_url')
+                .extra(select={'year_month': "DATE_FORMAT(date, '%%Y-%%m')"}) \
+                .values('year_month', 'diary_id', 'image_url').order_by('-year_month')
+
             serializer = DiaryListsSerializer(res_data_raw, many=True)
             res_data_json = serializer.data
-            sorted_data = sorted(res_data_json, key=itemgetter('year_month'))
+            sorted_data = sorted(res_data_json, key=itemgetter('year_month'), reverse=True)
+ 
             grouped_data = itertools.groupby(sorted_data, key=itemgetter('year_month'))
             res = {}
             for key, group_data in grouped_data:
@@ -56,20 +58,20 @@ def diary_create(request):
         try:
             user = request.user
             user_id = user.user_id
-            title = request.data['title']
+            date = request.data['date']
             content = request.data['content']
             wea_id = request.data['wea_id']
             emo_id = request.data['emo_id']
             user = User.objects.get(user_id=user_id)
             emo = Emotion.objects.get(emo_id=emo_id)
             wea = Weather.objects.get(wea_id=wea_id)
-            diary = Diary.objects.create(title=title, content=content, emo_id=emo, wea_id=wea, user_id=user)
+            diary = Diary.objects.create(date=date, content=content, emo_id=emo, wea_id=wea, user_id=user)
                 
             # ml 서버로 request 전송, 응답으로 prompt 받음
             prompt = send_summary_req(content)
             DiaryImg.objects.create(prompt=prompt, diary_id=diary)
 
-            return Response({'message' : '일기 저장을 성공하였습니다.', 'diary_id' : diary.diary_id}, status=status.HTTP_200_OK)
+            return Response({'message' : '일기 저장을 성공하였습니다.', 'diary_id' : diary.diary_id, 'prompt':prompt}, status=status.HTTP_200_OK)
             
         except:
             return Response({'err_msg' : '서버 오류입니다.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
@@ -83,7 +85,7 @@ def diary_one(request, diaryId):
     if(request.method == 'GET'):
         try:
             diary_id = diaryId
-            diary = Diary.objects.filter(diary_id=diary_id).values('diary_id', 'title', 'content', 'emo_id', 'wea_id', 'image_url')
+            diary = Diary.objects.filter(diary_id=diary_id).values('diary_id', 'date', 'content', 'emo_id', 'wea_id', 'image_url')
             serializer = BaseDiarySerializer(diary, many=True)                    
             res = serializer.data
             
@@ -101,7 +103,9 @@ def diary_update(request):
     if (request.method == 'PATCH'):
         try:
             diary_id = request.GET['id']
+            print(request.data)
             new_content = request.data['new_content']
+            
             diary = Diary.objects.get(diary_id=diary_id)
             diary.content = new_content
             diary.save()
@@ -114,7 +118,7 @@ def diary_update(request):
 
 
 @ensure_csrf_cookie
-@api_view(('POST',))
+@api_view(('PATCH',))
 @permission_classes([IsAuthenticated])
 def create_img(request):
     if (request.method == 'PATCH'):
@@ -123,10 +127,17 @@ def create_img(request):
             diary = Diary.objects.get(diary_id=diary_id)
             diary_img = DiaryImg.objects.get(diary_id=diary)
             prompt = diary_img.prompt
+            print(prompt)
             url = send_img_create_req(prompt)
+            
             diary.image_url = url
+            diary.save()
+            print(diary)
+            
+            diary_img.url = url
+            diary_img.save()
        
-            return Response({'message' : '그림 생성을 성공하였습니다.', 'url' : url}, status=status.HTTP_200_OK)
+            return Response({'message' : '그림 생성을 성공하였습니다.', 'url' : 'url'}, status=status.HTTP_200_OK)
             
         except:
             return Response({'err_msg' : '서버 오류입니다.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
@@ -201,7 +212,15 @@ def diary_uploadImg(request):
         try:
             user = request.user
             user_id = user.user_id
+            date = request.data['date']
+            #content = request.data['content']
+            wea_id = request.data['wea_id']
+            emo_id = request.data['emo_id']
             user = User.objects.get(user_id=user_id)
+            emo = Emotion.objects.get(emo_id=emo_id)
+            wea = Weather.objects.get(wea_id=wea_id)
+            diary = Diary.objects.create(date=date, emo_id=emo, wea_id=wea, user_id=user)
+                
 
             # 이미지 파일 받기
             image_file = request.FILES.get('image')
@@ -213,7 +232,11 @@ def diary_uploadImg(request):
             url = send_img(image_file)
             # print("presigned URL에 이미지 저장 후:", url)        ### debug
             
-            return Response({'url': url}, status=status.HTTP_200_OK)
+            prompt = send_img(url)
+            DiaryImg.objects.create(prompt=prompt, diary_id=diary)
+
+            
+            return Response({'message' : '대화 이미지로 일기 저장을 성공하였습니다.', 'diary_id' : diary.diary_id, 'prompt':prompt}, status=status.HTTP_200_OK)
 
         except:
-            return Response({'error': 'URL에 이미지를 저장하는데 실패했습니다.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return Response({'err_msg': '대화 이미지로 일기를 저장하는데 실패했습니다.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
