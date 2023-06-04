@@ -195,6 +195,7 @@ from .services import send_img
 
 @ensure_csrf_cookie
 @api_view(('POST',))
+@permission_classes([IsAuthenticated])
 def diary_uploadImg(request):
     if (request.method == 'POST'):
         try:
@@ -208,9 +209,9 @@ def diary_uploadImg(request):
                 return Response({'error': '이미지 파일이 존재하지 않습니다.'}, status=status.HTTP_400_BAD_REQUEST)
 
             # presigned URL에 이미지 저장
-            print("presigned URL에 이미지 저장 전:", image_file) ### debug
+            # print("presigned URL에 이미지 저장 전:", image_file) ### debug
             url = send_img(image_file)
-            print("presigned URL에 이미지 저장 후:", url)        ### debug
+            # print("presigned URL에 이미지 저장 후:", url)        ### debug
             
             return Response({'url': url}, status=status.HTTP_200_OK)
 
