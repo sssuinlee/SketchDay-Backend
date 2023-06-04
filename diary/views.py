@@ -11,6 +11,8 @@ from operator import itemgetter
 import boto3
 from .services import send_img_create_req, send_summary_req
 import backend.config.settings.base as settings
+import requests
+
 
 # S3
 import boto3
@@ -65,6 +67,7 @@ def diary_create(request):
             wea = Weather.objects.get(wea_id=wea_id)
             diary = Diary.objects.create(date=date, content=content, emo_id=emo, wea_id=wea, user_id=user)
                 
+            # ml 서버로 request 전송, 응답으로 prompt 받음
             prompt = send_summary_req(content)
             DiaryImg.objects.create(prompt=prompt, diary_id=diary)
 
@@ -190,6 +193,8 @@ def get_s3_presigned_url(request):
         s3 = boto3.resource('s3')
         buckets = s3.Bucket(name=AWS_STORAGE_BUCKET_NAME)
         print(buckets)
+        
+        # presigned URL 생성
         url = client.generate_presigned_url(
             ClientMethod='put_object',
             Params={
@@ -199,8 +204,41 @@ def get_s3_presigned_url(request):
             # url 생성 후 10초가 지나면 접근 불가
             ExpiresIn=3600
         )
+        
+        # 이미지 파일 업로드
+        # s3 = boto3.resource('s3')
+        # s3.Object(AWS_STORAGE_BUCKET_NAME, 'image.jpg').upload_fileobj(image_file)
+        
         print(url)
     
     return Response({'s3_url' : url})
 
 
+
+#######################################################################
+
+from .services import send_img
+
+@ensure_csrf_cookie
+@api_view(('POST',))
+def diary_uploadImg(request):
+    if (request.method == 'POST'):
+        try:
+            user = request.user
+            user_id = user.user_id
+            user = User.objects.get(user_id=user_id)
+
+            # 이미지 파일 받기
+            image_file = request.FILES.get('image')
+            if image_file is None:
+                return Response({'error': '이미지 파일이 존재하지 않습니다.'}, status=status.HTTP_400_BAD_REQUEST)
+
+            # presigned URL에 이미지 저장
+            print("presigned URL에 이미지 저장 전:", image_file) ### debug
+            url = send_img(image_file)
+            print("presigned URL에 이미지 저장 후:", url)        ### debug
+            
+            return Response({'url': url}, status=status.HTTP_200_OK)
+
+        except:
+            return Response({'error': 'URL에 이미지를 저장하는데 실패했습니다.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
