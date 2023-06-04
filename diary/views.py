@@ -68,8 +68,8 @@ def diary_create(request):
             diary = Diary.objects.create(date=date, content=content, emo_id=emo, wea_id=wea, user_id=user)
                 
             # ml 서버로 request 전송, 응답으로 prompt 받음
-            prompt = send_summary_req(content)
-            DiaryImg.objects.create(prompt=prompt, diary_id=diary)
+            #prompt = send_summary_req(content)
+            #DiaryImg.objects.create(prompt=prompt, diary_id=diary)
 
             return Response({'message' : '일기 저장을 성공하였습니다.', 'diary_id' : diary.diary_id, 'prompt':prompt}, status=status.HTTP_200_OK)
             
@@ -90,7 +90,9 @@ def diary_one(request, diaryId):
             res = serializer.data
             
             return Response({'message' : '일기 조회를 성공하였습니다.', 'res':res}, status=status.HTTP_200_OK)
-     
+        
+        except Diary.DoesNotExist:
+            return Response({'err_msg' : '존재하지 않는 일기입니다.'}, status=status.HTTP_400_BAD_REQUEST)
         except:
             return Response({'err_msg' : '서버 오류입니다.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)        
                 
@@ -102,16 +104,27 @@ def diary_one(request, diaryId):
 def diary_update(request):
     if (request.method == 'PATCH'):
         try:
-            diary_id = request.GET['id']
-            print(request.data)
-            new_content = request.data['new_content']
-            
+            diary_id = request.GET['id']            
             diary = Diary.objects.get(diary_id=diary_id)
+            
+            print(request.data)
+            new_content = diary.content if request.data['new_content'] == '' else request.data['new_content']
+            new_wea = diary.wea_id if request.data['new_wea'] == '' else Weather.objects.get(wea_id=request.data['new_wea'])
+            new_emo = diary.emo_id if request.data['new_emo'] == '' else Emotion.objects.get(emo_id=request.data['new_emo'])
+            new_date = diary.date if request.data['new_date'] == '' else request.data['new_date']
+            
             diary.content = new_content
+            diary.wea_id = new_wea
+            diary.emo_id = new_emo
+            diary.date = new_date
             diary.save()
 
             return Response({'message' : '일기 수정을 성공하였습니다.', 'diary_id' : diary.diary_id}, status=status.HTTP_200_OK)
-            
+        
+        except Diary.DoesNotExist:
+            return Response({'err_msg' : '존재하지 않는 일기입니다.'}, status=status.HTTP_400_BAD_REQUEST)
+        except KeyError:
+            return Response({'err_msg' : 'KeyError: \'new_content\''}, status=status.HTTP_400_BAD_REQUEST)
         except:
             return Response({'err_msg' : '서버 오류입니다.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
@@ -138,7 +151,9 @@ def create_img(request):
             diary_img.save()
        
             return Response({'message' : '그림 생성을 성공하였습니다.', 'url' : 'url'}, status=status.HTTP_200_OK)
-            
+        
+        except Diary.DoesNotExist:
+            return Response({'err_msg' : '존재하지 않는 일기입니다.'}, status=status.HTTP_400_BAD_REQUEST)
         except:
             return Response({'err_msg' : '서버 오류입니다.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
