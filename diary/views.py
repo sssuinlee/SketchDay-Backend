@@ -31,8 +31,8 @@ def diary_lists(request):
             user = request.user
             user_id = user.user_id
             res_data_raw = Diary.objects.filter(user_id = user_id) \
-                .extra(select={'year_month': "DATE_FORMAT(date, '%%Y-%%m')"}) \
-                .values('year_month', 'diary_id', 'image_url').order_by('-year_month')
+                .extra(select={'year_month': "DATE_FORMAT(date, '%%Y-%%m')", 'year_month_date': "DATE_FORMAT(date, '%%Y-%%m-%%d')"}) \
+                .values('year_month', 'diary_id', 'image_url').order_by('-year_month_date')
 
             serializer = DiaryListsSerializer(res_data_raw, many=True)
             res_data_json = serializer.data
