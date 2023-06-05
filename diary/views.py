@@ -68,8 +68,8 @@ def diary_create(request):
             diary = Diary.objects.create(date=date, content=content, emo_id=emo, wea_id=wea, user_id=user)
                 
             # ml 서버로 request 전송, 응답으로 prompt 받음
-            prompt = send_summary_req(content)
-            DiaryImg.objects.create(prompt=prompt, diary_id=diary)
+            #prompt = send_summary_req(content)
+            #DiaryImg.objects.create(prompt=prompt, diary_id=diary)
 
             return Response({'message' : '일기 저장을 성공하였습니다.', 'diary_id' : diary.diary_id, 'prompt':prompt}, status=status.HTTP_200_OK)
             
@@ -222,12 +222,21 @@ from .services import send_img
 
 @ensure_csrf_cookie
 @api_view(('POST',))
+@permission_classes([IsAuthenticated])
 def diary_uploadImg(request):
     if (request.method == 'POST'):
         try:
             user = request.user
             user_id = user.user_id
+            date = request.data['date']
+            #content = request.data['content']
+            wea_id = request.data['wea_id']
+            emo_id = request.data['emo_id']
             user = User.objects.get(user_id=user_id)
+            emo = Emotion.objects.get(emo_id=emo_id)
+            wea = Weather.objects.get(wea_id=wea_id)
+            diary = Diary.objects.create(date=date, emo_id=emo, wea_id=wea, user_id=user)
+                
 
             # 이미지 파일 받기
             image_file = request.FILES.get('image')
@@ -235,11 +244,15 @@ def diary_uploadImg(request):
                 return Response({'error': '이미지 파일이 존재하지 않습니다.'}, status=status.HTTP_400_BAD_REQUEST)
 
             # presigned URL에 이미지 저장
-            print("presigned URL에 이미지 저장 전:", image_file) ### debug
+            # print("presigned URL에 이미지 저장 전:", image_file) ### debug
             url = send_img(image_file)
-            print("presigned URL에 이미지 저장 후:", url)        ### debug
+            # print("presigned URL에 이미지 저장 후:", url)        ### debug
             
-            return Response({'url': url}, status=status.HTTP_200_OK)
+            prompt = send_img(url)
+            DiaryImg.objects.create(prompt=prompt, diary_id=diary)
+
+            
+            return Response({'message' : '대화 이미지로 일기 저장을 성공하였습니다.', 'diary_id' : diary.diary_id, 'prompt':prompt}, status=status.HTTP_200_OK)
 
         except:
-            return Response({'error': 'URL에 이미지를 저장하는데 실패했습니다.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return Response({'err_msg': '대화 이미지로 일기를 저장하는데 실패했습니다.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

@@ -28,12 +28,11 @@ def extract_url(input_string):
     url = bracket_strings[0]
     return url
 
-  
-#######################################################################
 
+#######################################################################
 def send_img(url):
-    res = requests.put('http://localhost:8000/ml/summaryDiary/', data = {'url' : url})
-    response_data = res.json()
-    print("Response data:", response_data)  ### debug
-    url = response_data.get('s3_url')
-    return {'s3_url': url}
+    res = requests.post('http://localhost:8000/ml/summaryDialogue/', data = {'url' : url})
+    print('res.statuscode :', res.status_code)
+    print('res.json()', res.json()['prompt'])
+    prompt = res.json()['prompt']
+    return prompt # prompt
