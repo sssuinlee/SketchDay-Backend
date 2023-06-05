@@ -17,8 +17,8 @@ import requests
 # S3
 import boto3
 
-## env
-from django.conf import settings
+# ## env
+# from django.conf import settings
 
 
 
@@ -31,8 +31,8 @@ def diary_lists(request):
             user = request.user
             user_id = user.user_id
             res_data_raw = Diary.objects.filter(user_id = user_id) \
-                .extra(select={'year_month': "DATE_FORMAT(date, '%%Y-%%m')"}) \
-                .values('year_month', 'diary_id', 'image_url').order_by('-year_month')
+                .extra(select={'year_month': "DATE_FORMAT(date, '%%Y-%%m')", 'year_month_date': "DATE_FORMAT(date, '%%Y-%%m-%%d')"}) \
+                .values('year_month', 'diary_id', 'image_url').order_by('-year_month_date')
 
             serializer = DiaryListsSerializer(res_data_raw, many=True)
             res_data_json = serializer.data
@@ -150,7 +150,7 @@ def create_img(request):
             diary_img.url = url
             diary_img.save()
        
-            return Response({'message' : '그림 생성을 성공하였습니다.', 'url' : 'url'}, status=status.HTTP_200_OK)
+            return Response({'message' : '그림 생성을 성공하였습니다.', 'url' : url}, status=status.HTTP_200_OK)
         
         except Diary.DoesNotExist:
             return Response({'err_msg' : '존재하지 않는 일기입니다.'}, status=status.HTTP_400_BAD_REQUEST)
@@ -180,15 +180,16 @@ def diary_del(request):
 @permission_classes([IsAuthenticated])    
 def get_s3_presigned_url(request):
     if (request.method == 'PUT'):
-        AWS_ACCESS_KEY_ID = getattr(settings, 'AWS_ACCESS_KEY_ID', 'AWS_ACCESS_KEY_ID')
-        AWS_SECRET_ACCESS_KEY = getattr(settings, 'AWS_SECRET_ACCESS_KEY', 'AWS_SECRET_ACCESS_KEY')
+        AWS_ACCESS_KEY_ID_2 = getattr(settings, 'AWS_ACCESS_KEY_ID_2', 'AWS_ACCESS_KEY_ID_2')
+        AWS_SECRET_ACCESS_KEY_2 = getattr(settings, 'AWS_SECRET_ACCESS_KEY_2', 'AWS_SECRET_ACCESS_KEY_2')
         AWS_STORAGE_BUCKET_NAME = getattr(settings, 'AWS_STORAGE_BUCKET_NAME', 'AWS_STORAGE_BUCKET_NAME')
+        AWS_REGION = getattr(settings, 'AWS_REGION', 'AWS_REGION')
         AWS_S3_CUSTOM_DOMAIN = getattr(settings, 'AWS_S3_CUSTOM_DOMAIN', 'AWS_S3_CUSTOM_DOMAIN')
 
         client = boto3.client('s3',
-                           aws_access_key_id=AWS_ACCESS_KEY_ID,
-                           aws_secret_access_key=AWS_SECRET_ACCESS_KEY,
-                           region_name='ap-northeast-2')
+                           aws_access_key_id=AWS_ACCESS_KEY_ID_2,
+                           aws_secret_access_key=AWS_SECRET_ACCESS_KEY_2,
+                           region_name=AWS_REGION)
         print(client)
         s3 = boto3.resource('s3')
         buckets = s3.Bucket(name=AWS_STORAGE_BUCKET_NAME)

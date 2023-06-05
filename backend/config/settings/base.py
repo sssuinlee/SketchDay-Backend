@@ -24,9 +24,6 @@ from django.core.exceptions import ImproperlyConfigured
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent.parent.parent
 
-# Build paths inside the project like this: BASE_DIR / 'subdir'.
-BASE_DIR = Path(__file__).resolve().parent.parent.parent.parent
-
 env = environ.Env(
     # set casting, default value
     DEBUG=(bool, False)
@@ -230,6 +227,9 @@ CSRF_COOKIE_HTTPONLY = True
 AWS_ACCESS_KEY_ID = env('AWS_ACCESS_KEY_ID')
 AWS_SECRET_ACCESS_KEY = env('AWS_SECRET_ACCESS_KEY')
 AWS_REGION = env('AWS_REGION')
+
+AWS_ACCESS_KEY_ID_2 = env('AWS_ACCESS_KEY_ID_2')
+AWS_SECRET_ACCESS_KEY_2 = env('AWS_SECRET_ACCESS_KEY_2')
 
 # AWS S3
 AWS_STORAGE_BUCKET_NAME = env('AWS_STORAGE_BUCKET_NAME')

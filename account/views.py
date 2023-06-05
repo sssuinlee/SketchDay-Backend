@@ -10,6 +10,8 @@ from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.decorators import api_view
 from rest_framework.views import APIView
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+from django.core.mail import EmailMessage, EmailMultiAlternatives
+from backend.config.settings.base import EMAIL_HOST_USER
 
 class UserLoginAPI(APIView):
     def post(self, request):
@@ -83,8 +85,8 @@ def signup_send_verification_code(request):
             auth_code = email_auth_string()
             cache.set(target_email, auth_code)
             print(cache.get(target_email))
-            try:
-                send_mail(
+        try:
+            send_mail(
                     'Sketch Day 이메일 인증 코드입니다.',
                     recipient_list=[target_email],
                     html=render_to_string('inviteMailForm.html', {
@@ -92,10 +94,10 @@ def signup_send_verification_code(request):
                     'auth_code': auth_code,                    
                     })
                 )
-                return Response({'success' : '성공적으로 인증코드를 전송하였습니다.'}, status=status.HTTP_200_OK)
-            except:
-                return Response({"err_msg" : "서버 혹은 네트워크 오류로 이메일 전송에 실패하였습니다."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-        else:
+            return Response({'success' : '성공적으로 인증코드를 전송하였습니다.'}, status=status.HTTP_200_OK)
+        except:
+            return Response({"err_msg" : "서버 혹은 네트워크 오류로 이메일 전송에 실패하였습니다."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    else:
             return Response({'err_msg' : '이미 가입된 이메일입니다.'}, status=status.HTTP_400_BAD_REQUEST)
 
 
