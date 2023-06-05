@@ -68,10 +68,10 @@ def diary_create(request):
             diary = Diary.objects.create(date=date, content=content, emo_id=emo, wea_id=wea, user_id=user)
                 
             # ml 서버로 request 전송, 응답으로 prompt 받음
-            #prompt = send_summary_req(content)
-            #DiaryImg.objects.create(prompt=prompt, diary_id=diary)
+            prompt = send_summary_req(content)
+            DiaryImg.objects.create(prompt=prompt, diary_id=diary)
 
-            return Response({'message' : '일기 저장을 성공하였습니다.', 'diary_id' : diary.diary_id, 'prompt':prompt}, status=status.HTTP_200_OK)
+            return Response({'message' : '일기 저장을 성공하였습니다.', 'diary_id' : diary.diary_id, 'prompt': prompt}, status=status.HTTP_200_OK)
             
         except:
             return Response({'err_msg' : '서버 오류입니다.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
