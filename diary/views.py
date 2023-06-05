@@ -150,7 +150,7 @@ def create_img(request):
             diary_img.url = url
             diary_img.save()
        
-            return Response({'message' : '그림 생성을 성공하였습니다.', 'url' : 'url'}, status=status.HTTP_200_OK)
+            return Response({'message' : '그림 생성을 성공하였습니다.', 'url' : url}, status=status.HTTP_200_OK)
         
         except Diary.DoesNotExist:
             return Response({'err_msg' : '존재하지 않는 일기입니다.'}, status=status.HTTP_400_BAD_REQUEST)
