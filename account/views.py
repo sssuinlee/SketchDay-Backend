@@ -10,6 +10,8 @@ from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.decorators import api_view
 from rest_framework.views import APIView
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+from django.core.mail import EmailMessage, EmailMultiAlternatives
+from backend.config.settings.base import EMAIL_HOST_USER
 
 class UserLoginAPI(APIView):
     def post(self, request):
@@ -97,6 +99,8 @@ def signup_send_verification_code(request):
                 return Response({"err_msg" : "서버 혹은 네트워크 오류로 이메일 전송에 실패하였습니다."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         else:
             return Response({'err_msg' : '이미 가입된 이메일입니다.'}, status=status.HTTP_400_BAD_REQUEST)
+
+
 
 
 @ensure_csrf_cookie

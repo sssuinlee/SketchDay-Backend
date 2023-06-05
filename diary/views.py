@@ -180,15 +180,16 @@ def diary_del(request):
 @permission_classes([IsAuthenticated])    
 def get_s3_presigned_url(request):
     if (request.method == 'PUT'):
-        AWS_ACCESS_KEY_ID = getattr(settings, 'AWS_ACCESS_KEY_ID', 'AWS_ACCESS_KEY_ID')
-        AWS_SECRET_ACCESS_KEY = getattr(settings, 'AWS_SECRET_ACCESS_KEY', 'AWS_SECRET_ACCESS_KEY')
+        AWS_ACCESS_KEY_ID_2 = getattr(settings, 'AWS_ACCESS_KEY_ID_2', 'AWS_ACCESS_KEY_ID_2')
+        AWS_SECRET_ACCESS_KEY_2 = getattr(settings, 'AWS_SECRET_ACCESS_KEY_2', 'AWS_SECRET_ACCESS_KEY_2')
         AWS_STORAGE_BUCKET_NAME = getattr(settings, 'AWS_STORAGE_BUCKET_NAME', 'AWS_STORAGE_BUCKET_NAME')
+        AWS_REGION = getattr(settings, 'AWS_REGION', 'AWS_REGION')
         AWS_S3_CUSTOM_DOMAIN = getattr(settings, 'AWS_S3_CUSTOM_DOMAIN', 'AWS_S3_CUSTOM_DOMAIN')
 
         client = boto3.client('s3',
-                           aws_access_key_id=AWS_ACCESS_KEY_ID,
-                           aws_secret_access_key=AWS_SECRET_ACCESS_KEY,
-                           region_name='ap-northeast-2')
+                           aws_access_key_id=AWS_ACCESS_KEY_ID_2,
+                           aws_secret_access_key=AWS_SECRET_ACCESS_KEY_2,
+                           region_name=AWS_REGION)
         print(client)
         s3 = boto3.resource('s3')
         buckets = s3.Bucket(name=AWS_STORAGE_BUCKET_NAME)
