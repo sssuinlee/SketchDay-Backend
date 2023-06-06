@@ -11,7 +11,6 @@ from operator import itemgetter
 from .services import send_img_create_req, send_summary_req
 import backend.config.settings.base as settings
 from botocore.client import Config
-from botocore.exceptions import ClientError
 
 
 # S3
@@ -145,10 +144,10 @@ def create_img(request):
             
             diary.image_url = url
             diary.save()
-            print(diary)
             
             diary_img.url = url
             diary_img.save()
+            print(diary)
        
             return Response({'message' : '그림 생성을 성공하였습니다.', 'url' : url}, status=status.HTTP_200_OK)
         
@@ -213,7 +212,7 @@ def get_s3_presigned_url(request):
 
 #######################################################################
 
-from .services import send_img
+from .services import send_summary_req_img
 
 @ensure_csrf_cookie
 @api_view(('POST',))
@@ -221,33 +220,25 @@ from .services import send_img
 def diary_uploadImg(request):
     if (request.method == 'POST'):
         try:
+            s3_urls = request.data['s3_urls']
             user = request.user
             user_id = user.user_id
             date = request.data['date']
-            #content = request.data['content']
             wea_id = request.data['wea_id']
             emo_id = request.data['emo_id']
             user = User.objects.get(user_id=user_id)
             emo = Emotion.objects.get(emo_id=emo_id)
             wea = Weather.objects.get(wea_id=wea_id)
-            diary = Diary.objects.create(date=date, emo_id=emo, wea_id=wea, user_id=user)
-                
-
-            # 이미지 파일 받기
-            image_file = request.FILES.get('image')
-            if image_file is None:
-                return Response({'error': '이미지 파일이 존재하지 않습니다.'}, status=status.HTTP_400_BAD_REQUEST)
-
-            # presigned URL에 이미지 저장
-            # print("presigned URL에 이미지 저장 전:", image_file) ### debug
-            url = send_img(image_file)
-            # print("presigned URL에 이미지 저장 후:", url)        ### debug
             
-            prompt = send_img(url)
+            try:
+                prompt = send_summary_req_img(s3_urls)
+            except:
+                return Response({'message' : '일기 요약 실패'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            
+            diary = Diary.objects.create(date=date, emo_id=emo, wea_id=wea, user_id=user, content=prompt)
             DiaryImg.objects.create(prompt=prompt, diary_id=diary)
 
             
             return Response({'message' : '대화 이미지로 일기 저장을 성공하였습니다.', 'diary_id' : diary.diary_id, 'prompt':prompt}, status=status.HTTP_200_OK)
-
         except:
             return Response({'err_msg': '대화 이미지로 일기를 저장하는데 실패했습니다.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
