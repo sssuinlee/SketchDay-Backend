@@ -11,6 +11,7 @@ from operator import itemgetter
 from .services import send_img_create_req, send_summary_req
 import backend.config.settings.base as settings
 from botocore.client import Config
+from botocore.exceptions import ClientError
 
 
 # S3
@@ -172,46 +173,41 @@ def diary_del(request):
         except:
             return Response({'err_msg' : '서버 오류입니다.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+
 @ensure_csrf_cookie
 @api_view(('PUT',))
 @permission_classes([IsAuthenticated])    
 def get_s3_presigned_url(request):
     if (request.method == 'PUT'):
-        AWS_ACCESS_KEY_ID = getattr(settings, 'AWS_ACCESS_KEY_ID', 'AWS_ACCESS_KEY_ID')
-        AWS_SECRET_ACCESS_KEY = getattr(settings, 'AWS_SECRET_ACCESS_KEY', 'AWS_SECRET_ACCESS_KEY')
+        # 이미지 경로
+        image_paths = request.data['imagePaths']
+        
         AWS_ACCESS_KEY_ID_2 = getattr(settings, 'AWS_ACCESS_KEY_ID_2', 'AWS_ACCESS_KEY_ID_2')
         AWS_SECRET_ACCESS_KEY_2 = getattr(settings, 'AWS_SECRET_ACCESS_KEY_2', 'AWS_SECRET_ACCESS_KEY_2')
         AWS_STORAGE_BUCKET_NAME = getattr(settings, 'AWS_STORAGE_BUCKET_NAME', 'AWS_STORAGE_BUCKET_NAME')
         AWS_REGION = getattr(settings, 'AWS_REGION', 'AWS_REGION')
         AWS_S3_CUSTOM_DOMAIN = getattr(settings, 'AWS_S3_CUSTOM_DOMAIN', 'AWS_S3_CUSTOM_DOMAIN')
 
-        s3_client = boto3.client(
-            "s3",
-            aws_access_key_id = AWS_ACCESS_KEY_ID_2,
-            aws_secret_access_key = AWS_SECRET_ACCESS_KEY_2,
-            region_name="ap-northeast-2",
-            config=Config(signature_version='s3v4')
-            )
-        # 'Key' 에는 파일 이름이 들어가야한다.
-        # url = s3_client.generate_presigned_url(
-        #     ClientMethod = 'put_object',
-        #     Params = {
-        #         'Bucket': AWS_STORAGE_BUCKET_NAME, 
-        #         'Key': 'Idwhwkiwjdaws',
-        #         },
-        #     ExpiresIn = 100
-        # )
-        response = s3_client.generate_presigned_post(
-            Bucket = AWS_STORAGE_BUCKET_NAME,
-            Key="OBJECT_PATH",
+        s3_client = boto3.client('s3',
+                           aws_access_key_id=AWS_ACCESS_KEY_ID_2,
+                           aws_secret_access_key=AWS_SECRET_ACCESS_KEY_2,
+                           region_name=AWS_REGION,
+                           config=Config(signature_version="s3v4"))
+        
+        s3_urls = []
+        
+        for path in image_paths:
+            url = s3_client.generate_presigned_url(
+            ClientMethod='put_object',
+            Params={'Bucket' : AWS_STORAGE_BUCKET_NAME, 'Key': path},
             ExpiresIn=3600
             )
-        print(response)
-        # 이미지 파일 업로드
-        # s3 = boto3.resource('s3')
-        # s3.Object(AWS_STORAGE_BUCKET_NAME, 'image.jpg').upload_fileobj(image_file)
+            s3_urls.append(url)
+        
+        
+        print(s3_urls)
     
-    return Response({'s3_url' : response})
+    return Response({'s3_url' : s3_urls})
 
 
 
