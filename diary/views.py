@@ -11,7 +11,7 @@ from operator import itemgetter
 import boto3
 from .services import send_img_create_req, send_summary_req
 import backend.config.settings.base as settings
-import requests
+from botocore.client import Config
 
 
 # S3
@@ -176,7 +176,7 @@ def diary_del(request):
     
     
 @ensure_csrf_cookie
-@api_view(('PUT',))
+@api_view(('GET',))
 @permission_classes([IsAuthenticated])    
 def get_s3_presigned_url(request):
     if (request.method == 'PUT'):
@@ -191,13 +191,13 @@ def get_s3_presigned_url(request):
                            aws_secret_access_key=AWS_SECRET_ACCESS_KEY_2,
                            region_name=AWS_REGION)
         print(client)
-        s3 = boto3.resource('s3')
+        s3 = boto3.resource('s3', config=Config(signature_version="s3v4"))
         buckets = s3.Bucket(name=AWS_STORAGE_BUCKET_NAME)
         print(buckets)
         
         # presigned URL 생성
         url = client.generate_presigned_url(
-            ClientMethod='put_object',
+            'get_object',
             Params={
                 'Bucket': AWS_STORAGE_BUCKET_NAME,
                 'Key': 'test.txt',
