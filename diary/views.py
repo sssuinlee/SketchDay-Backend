@@ -67,7 +67,7 @@ def diary_create(request):
             diary = Diary.objects.create(date=date, content=content, emo_id=emo, wea_id=wea, user_id=user)
                 
             # ml 서버로 request 전송, 응답으로 prompt 받음
-            prompt = send_summary_req(content)
+            prompt = send_summary_req(content, diary.diary_id)
             DiaryImg.objects.create(prompt=prompt, diary_id=diary)
 
             return Response({'message' : '일기 저장을 성공하였습니다.', 'diary_id' : diary.diary_id, 'prompt': prompt}, status=status.HTTP_200_OK)
@@ -140,7 +140,7 @@ def create_img(request):
             diary_img = DiaryImg.objects.get(diary_id=diary)
             prompt = diary_img.prompt
             print(prompt)
-            url = send_img_create_req(prompt)
+            url = send_img_create_req(prompt, diary_id)
             
             diary.image_url = url
             diary.save()
@@ -230,12 +230,15 @@ def diary_uploadImg(request):
             emo = Emotion.objects.get(emo_id=emo_id)
             wea = Weather.objects.get(wea_id=wea_id)
             
+            diary = Diary.objects.create(date=date, emo_id=emo, wea_id=wea, user_id=user, content="")
+            
             try:
-                prompt = send_summary_req_img(s3_urls)
+                prompt = send_summary_req_img(s3_urls, diary.diary_id)
             except:
                 return Response({'message' : '일기 요약 실패'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
             
-            diary = Diary.objects.create(date=date, emo_id=emo, wea_id=wea, user_id=user, content=prompt)
+            diary.content = prompt
+            diary.save()
             DiaryImg.objects.create(prompt=prompt, diary_id=diary)
 
             
