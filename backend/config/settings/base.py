@@ -194,8 +194,8 @@ AUTH_USER_MODEL = 'account.User'
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 EMAIL_PORT = 587
 EMAIL_HOST = "smtp.gmail.com"
-EMAIL_HOST_USER = 'capstone.sketch.day@gmail.com'
-EMAIL_HOST_PASSWORD = env('EMAIL_HOST_PASSWORD')
+EMAIL_HOST_USER = 'sketch.day23@gmail.com'
+EMAIL_HOST_PASSWORD = env('EMAIL_HOST_PASSWORD2')
 EMAIL_USE_TLS = True
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 
