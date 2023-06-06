@@ -8,7 +8,6 @@ from rest_framework.permissions import IsAuthenticated
 from .serializers import BaseDiarySerializer, DiaryListsSerializer
 import itertools
 from operator import itemgetter
-import boto3
 from .services import send_img_create_req, send_summary_req
 import backend.config.settings.base as settings
 from botocore.client import Config
@@ -173,46 +172,46 @@ def diary_del(request):
         except:
             return Response({'err_msg' : '서버 오류입니다.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-    
-    
 @ensure_csrf_cookie
-@api_view(('GET',))
+@api_view(('PUT',))
 @permission_classes([IsAuthenticated])    
 def get_s3_presigned_url(request):
     if (request.method == 'PUT'):
+        AWS_ACCESS_KEY_ID = getattr(settings, 'AWS_ACCESS_KEY_ID', 'AWS_ACCESS_KEY_ID')
+        AWS_SECRET_ACCESS_KEY = getattr(settings, 'AWS_SECRET_ACCESS_KEY', 'AWS_SECRET_ACCESS_KEY')
         AWS_ACCESS_KEY_ID_2 = getattr(settings, 'AWS_ACCESS_KEY_ID_2', 'AWS_ACCESS_KEY_ID_2')
         AWS_SECRET_ACCESS_KEY_2 = getattr(settings, 'AWS_SECRET_ACCESS_KEY_2', 'AWS_SECRET_ACCESS_KEY_2')
         AWS_STORAGE_BUCKET_NAME = getattr(settings, 'AWS_STORAGE_BUCKET_NAME', 'AWS_STORAGE_BUCKET_NAME')
         AWS_REGION = getattr(settings, 'AWS_REGION', 'AWS_REGION')
         AWS_S3_CUSTOM_DOMAIN = getattr(settings, 'AWS_S3_CUSTOM_DOMAIN', 'AWS_S3_CUSTOM_DOMAIN')
 
-        client = boto3.client('s3',
-                           aws_access_key_id=AWS_ACCESS_KEY_ID_2,
-                           aws_secret_access_key=AWS_SECRET_ACCESS_KEY_2,
-                           region_name=AWS_REGION)
-        print(client)
-        s3 = boto3.resource('s3', config=Config(signature_version="s3v4"))
-        buckets = s3.Bucket(name=AWS_STORAGE_BUCKET_NAME)
-        print(buckets)
-        
-        # presigned URL 생성
-        url = client.generate_presigned_url(
-            'get_object',
-            Params={
-                'Bucket': AWS_STORAGE_BUCKET_NAME,
-                'Key': 'test.txt',
-            },
-            # url 생성 후 10초가 지나면 접근 불가
+        s3_client = boto3.client(
+            "s3",
+            aws_access_key_id = AWS_ACCESS_KEY_ID_2,
+            aws_secret_access_key = AWS_SECRET_ACCESS_KEY_2,
+            region_name="ap-northeast-2",
+            config=Config(signature_version='s3v4')
+            )
+        # 'Key' 에는 파일 이름이 들어가야한다.
+        # url = s3_client.generate_presigned_url(
+        #     ClientMethod = 'put_object',
+        #     Params = {
+        #         'Bucket': AWS_STORAGE_BUCKET_NAME, 
+        #         'Key': 'Idwhwkiwjdaws',
+        #         },
+        #     ExpiresIn = 100
+        # )
+        response = s3_client.generate_presigned_post(
+            Bucket = AWS_STORAGE_BUCKET_NAME,
+            Key="OBJECT_PATH",
             ExpiresIn=3600
-        )
-        
+            )
+        print(response)
         # 이미지 파일 업로드
         # s3 = boto3.resource('s3')
         # s3.Object(AWS_STORAGE_BUCKET_NAME, 'image.jpg').upload_fileobj(image_file)
-        
-        print(url)
     
-    return Response({'s3_url' : url})
+    return Response({'s3_url' : response})
 
 
 
