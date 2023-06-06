@@ -30,8 +30,9 @@ def extract_url(input_string):
 
 
 #######################################################################
-def send_img(url):
-    res = requests.post('http://localhost:8000/ml/summaryDialogue/', data = {'url' : url})
+def send_summary_req_img(url_list):
+    print(url_list)
+    res = requests.post('http://localhost:8000/ml/summaryDialogue/', json={"req_urls" : url_list}, headers = {'Content-type': 'application/json'})
     print('res.statuscode :', res.status_code)
     print('res.json()', res.json()['prompt'])
     prompt = res.json()['prompt']
