@@ -239,7 +239,7 @@ def diary_uploadImg(request):
             except:
                 return Response({'message' : '일기 요약 실패'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
             
-            diary.content = prompt
+            diary.content = summary_dialogue
             diary.save()
             DiaryImg.objects.create(prompt=prompt, diary_id=diary)
 
