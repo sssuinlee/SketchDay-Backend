@@ -46,5 +46,6 @@ def send_summary_req_img(url_list, diary_id):
                         headers = {'Content-type': 'application/json'})
     print('res.statuscode :', res.status_code)
     print('res.json()', res.json()['prompt'])
-    prompt = res.json()['prompt']
-    return prompt # prompt
+    summary_dialogue = res.json()['full_dialog'] # 요약된 일기
+    prompt = res.json()['prompt'] # 프롬프트
+    return prompt, summary_dialogue 
