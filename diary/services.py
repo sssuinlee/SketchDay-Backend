@@ -2,10 +2,15 @@
 # https://docs.python-requests.org/en/latest/user/quickstart/#make-a-request
 import requests
 import re
+import json
 
 # 사용자가 일기 create할 때 호출하여 ml 서버로 request 전송, 응답으로 prompt 받음
 def send_summary_req(full_diary, diary_id):
-    res = requests.post('http://localhost:8000/ml/summaryDiary/', data = {'full_diary' : full_diary, 'diary_id' : diary_id})
+    payload = {'full_diary' : full_diary, 'diary_id' : diary_id}
+    res = requests.post('http://localhost:8000/ml/summaryDiary/', 
+                        data=json.dumps(payload),
+                         headers = {'Content-type': 'application/json'})
+    print(res.text)
     print('res.statuscode :', res.status_code)
     print('res.json()', res.json()['prompt'])
     prompt = res.json()['prompt']
@@ -16,7 +21,10 @@ def send_summary_req(full_diary, diary_id):
 # -> url 응답 받고 반환하여 DB에 저장
 # -> 프론트엔드한테 이미지 url 전송
 def send_img_create_req(prompt, diary_id):
-    res = requests.post('http://localhost:8000/ml/generateImage/create', data = {'prompt' : prompt, 'diary_id' : diary_id})
+    payload = {'prompt' : prompt, 'diary_id' : diary_id}
+    res = requests.post('http://localhost:8000/ml/generateImage/create', 
+                        data = json.dumps(payload), 
+                        headers = {'Content-type': 'application/json'})
     raw_url = res.json()['url']
     url = extract_url(raw_url)
     return url
@@ -32,7 +40,10 @@ def extract_url(input_string):
 #######################################################################
 def send_summary_req_img(url_list, diary_id):
     print(url_list)
-    res = requests.post('http://localhost:8000/ml/summaryDialogue/', json = {"req_urls" : url_list, 'diary_id' : diary_id}, headers = {'Content-type': 'application/json'})
+    payload = {"req_urls" : url_list, 'diary_id' : diary_id}
+    res = requests.post('http://localhost:8000/ml/summaryDialogue/', 
+                        data=json.dumps(payload), 
+                        headers = {'Content-type': 'application/json'})
     print('res.statuscode :', res.status_code)
     print('res.json()', res.json()['prompt'])
     prompt = res.json()['prompt']
