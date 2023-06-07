@@ -54,7 +54,7 @@ def diary_lists(request):
 @permission_classes([IsAuthenticated])
 def diary_create(request):
     if (request.method == 'POST'):
-        try:
+        # try:
             user = request.user
             user_id = user.user_id
             date = request.data['date']
@@ -67,13 +67,13 @@ def diary_create(request):
             diary = Diary.objects.create(date=date, content=content, emo_id=emo, wea_id=wea, user_id=user)
                 
             # ml 서버로 request 전송, 응답으로 prompt 받음
-            prompt = send_summary_req(content, diary.diary_id)
+            prompt = send_summary_req(content, str(diary.diary_id))
             DiaryImg.objects.create(prompt=prompt, diary_id=diary)
 
             return Response({'message' : '일기 저장을 성공하였습니다.', 'diary_id' : diary.diary_id, 'prompt': prompt}, status=status.HTTP_200_OK)
             
-        except:
-            return Response({'err_msg' : '서버 오류입니다.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        # except:
+            # return Response({'err_msg' : '서버 오류입니다.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 
@@ -102,7 +102,7 @@ def diary_one(request, diaryId):
 @permission_classes([IsAuthenticated])
 def diary_update(request):
     if (request.method == 'PATCH'):
-        try:
+        # try:
             diary_id = request.GET['id']            
             diary = Diary.objects.get(diary_id=diary_id)
             
@@ -120,12 +120,12 @@ def diary_update(request):
 
             return Response({'message' : '일기 수정을 성공하였습니다.', 'diary_id' : diary.diary_id}, status=status.HTTP_200_OK)
         
-        except Diary.DoesNotExist:
-            return Response({'err_msg' : '존재하지 않는 일기입니다.'}, status=status.HTTP_400_BAD_REQUEST)
-        except KeyError:
-            return Response({'err_msg' : 'KeyError: \'new_content\''}, status=status.HTTP_400_BAD_REQUEST)
-        except:
-            return Response({'err_msg' : '서버 오류입니다.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        # except Diary.DoesNotExist:
+        #     return Response({'err_msg' : '존재하지 않는 일기입니다.'}, status=status.HTTP_400_BAD_REQUEST)
+        # except KeyError:
+        #     return Response({'err_msg' : 'KeyError: \'new_content\''}, status=status.HTTP_400_BAD_REQUEST)
+        # except:
+        #     return Response({'err_msg' : '서버 오류입니다.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 
@@ -140,7 +140,7 @@ def create_img(request):
             diary_img = DiaryImg.objects.get(diary_id=diary)
             prompt = diary_img.prompt
             print(prompt)
-            url = send_img_create_req(prompt, diary_id)
+            url = send_img_create_req(prompt, str(diary_id))
             
             diary.image_url = url
             diary.save()
@@ -219,7 +219,7 @@ from .services import send_summary_req_img
 @permission_classes([IsAuthenticated])
 def diary_uploadImg(request):
     if (request.method == 'POST'):
-        try:
+        # try:
             s3_urls = request.data['s3_urls']
             user = request.user
             user_id = user.user_id
@@ -233,7 +233,7 @@ def diary_uploadImg(request):
             diary = Diary.objects.create(date=date, emo_id=emo, wea_id=wea, user_id=user, content="")
             
             try:
-                prompt = send_summary_req_img(s3_urls, diary.diary_id)
+                prompt = send_summary_req_img(s3_urls, str(diary.diary_id))
             except:
                 return Response({'message' : '일기 요약 실패'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
             
@@ -243,5 +243,7 @@ def diary_uploadImg(request):
 
             
             return Response({'message' : '대화 이미지로 일기 저장을 성공하였습니다.', 'diary_id' : diary.diary_id, 'prompt':prompt}, status=status.HTTP_200_OK)
-        except:
-            return Response({'err_msg': '대화 이미지로 일기를 저장하는데 실패했습니다.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        # except:
+            # return Response({'err_msg': '대화 이미지로 일기를 저장하는데 실패했습니다.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
