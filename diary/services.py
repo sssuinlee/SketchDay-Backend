@@ -10,11 +10,8 @@ def send_summary_req(full_diary, diary_id):
     res = requests.post('http://localhost:8000/ml/summaryDiary/', 
                         data=json.dumps(payload),
                          headers = {'Content-type': 'application/json'})
-    print(res.text)
-    print('res.statuscode :', res.status_code)
-    print('res.json()', res.json()['prompt'])
     prompt = res.json()['prompt']
-    return prompt # prompt
+    return prompt, res.status_code # prompt
 
 
 # 사용자가 일기 modify할 때 호출하여 ml 서버로 request 전송 
@@ -44,7 +41,5 @@ def send_summary_req_img(url_list, diary_id):
     res = requests.post('http://localhost:8000/ml/summaryDialogue/', 
                         data=json.dumps(payload), 
                         headers = {'Content-type': 'application/json'})
-    print('res.statuscode :', res.status_code)
-    print('res.json()', res.json()['prompt'])
     prompt = res.json()['prompt']
-    return prompt # prompt
+    return prompt, res.status_code # prompt
