@@ -238,12 +238,14 @@ def diary_uploadImg(request):
             diary = Diary.objects.create(date=date, emo_id=emo, wea_id=wea, user_id=user, content="")
             print(diary)
             
+            prompt, summary_dialogue = '', ''
+            
             try:
-                prompt = send_summary_req_img(s3_urls, str(diary.diary_id))
+                prompt, summary_dialogue = send_summary_req_img(s3_urls, str(diary.diary_id))
             except:
                 return Response({'message' : '일기 요약 실패'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
             
-            diary.content = prompt
+            diary.content = summary_dialogue
             diary.save()
             DiaryImg.objects.create(prompt=prompt, diary_id=diary)
 

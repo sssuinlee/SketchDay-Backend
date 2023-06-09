@@ -41,5 +41,8 @@ def send_summary_req_img(url_list, diary_id):
     res = requests.post('http://localhost:8000/ml/summaryDialogue/', 
                         data=json.dumps(payload), 
                         headers = {'Content-type': 'application/json'})
-    prompt = res.json()['prompt']
-    return prompt, res.status_code # prompt
+    print('res.statuscode :', res.status_code)
+    print('res.json()', res.json()['prompt'])
+    summary_dialogue = res.json()['full_dialog'] # 요약된 일기
+    prompt = res.json()['prompt'] # 프롬프트
+    return prompt, summary_dialogue 
